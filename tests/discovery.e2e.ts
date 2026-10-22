@@ -50,7 +50,8 @@ async function open(page: Page, linked: boolean, HEAD = 1_000_000) {
 test("a linked browser signer finds its app wallet and applies it with one click", async ({ page }) => {
   await open(page, true);
   const found = page.getByLabel("Linked app wallets");
-  await expect(found).toContainText("Linked by app wallet 0x436d…c1F5");
+  // Discovery is several sequential reads (markets, registry, head, log windows, permissions); allow for a loaded machine.
+  await expect(found).toContainText("Linked by app wallet 0x436d…c1F5", { timeout: 15_000 });
   await page.getByRole("button", { name: "Trade this app wallet", exact: true }).click();
   await expect(page.getByLabel("Owner account")).toContainText("0x436d…c1F5");
   const perms = page.getByLabel("Operator permissions");

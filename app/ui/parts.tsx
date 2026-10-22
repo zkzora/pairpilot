@@ -8,7 +8,7 @@ import { CloseReviewPanel } from "./close";
 import { NETWORK } from "../../src/lib/network";
 import { Logo } from "./logo";
 import { signed } from "../../src/core/types";
-import { base, closableLegs, humanEvent, legNotional, legView, limitText, pairAlert, pairStatus, pairSubtitle, percent, quote, shortHash, signedBase, totalNotional, type Alert, type LegView, type Tone } from "./view";
+import { base, closableLegs, humanEvent, nextStep, legNotional, legView, limitText, pairAlert, pairStatus, pairSubtitle, percent, quote, shortHash, signedBase, totalNotional, type Alert, type LegView, type Tone } from "./view";
 
 export { Logo };
 export type Tab = "trade" | "activity" | "setup";
@@ -143,6 +143,7 @@ export function Post({ record, busy, actionsDisabled, signerMismatch, closeRevie
     {signerMismatch && <Callout alert={{ tone: "bad", title: "This pair belongs to another signer.", body: signerMismatch }} live />}
     {alert && <Callout alert={alert} live />}
     <div className="cards">{([0, 1] as const).map(i => <LegCard key={i} view={legView(record, i, busy)} mode={mode} />)}</div>
+    {!closeReview && !signerMismatch && nextStep(record, busy) && <div className="next-step" aria-label="Next step"><span className="k">Next step</span><p className="pretty">{nextStep(record, busy)}{mode === "testnet" && record.operations.some(o => (o.status === "submitting" || o.status === "unknown") && !o.hash) && <> <a href={`${NETWORK.explorer}/address/${record.plan.signer ?? record.plan.account}`} target="_blank" rel="noreferrer">Open signer history ↗</a></>}</p></div>}
     {closeReview ? <CloseReviewPanel review={closeReview} record={record} now={now} busy={actionsDisabled} onCancel={onCancelClose} onConfirm={onConfirmClose} onRefresh={onClose} /> : <>
     <div className="actions">
       {record.status === "flat"

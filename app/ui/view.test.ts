@@ -4,7 +4,7 @@ import { MemoryJournal } from "../../src/core/journal";
 import { makePlan } from "../../src/core/planner";
 import type { PairRecord } from "../../src/core/types";
 import { SIM_MARKETS, SIM_PRICES, SimulatedVenue, type Scenario } from "../../src/adapters/simulated";
-import { belowMinimum, closableLegs, humanEvent, legView, pairAlert, pairStatus, totalNotional } from "./view";
+import { belowMinimum, closableLegs, humanEvent, nextStep, legView, pairAlert, pairStatus, totalNotional } from "./view";
 import { simMarkets, simPrices } from "../../src/adapters/simulated";
 
 async function run(scenario: Scenario) {
@@ -89,5 +89,23 @@ describe("dust below the market minimum", () => {
     expect(pairAlert(record, false)?.title).toBe("This amount is below the market minimum. No order can close it.");
     expect(pairAlert(record, false)?.body).toContain("SOL −0.08 (minimum 0.1");
     expect(pairStatus(record, false).label).toBe("Residual exposure");
+  });
+});
+
+describe("next step for every state", () => {
+  it("names one action per state and never suggests resending", async () => {
+    const paired = (await run("success")).record;
+    expect(nextStep(paired, false)).toContain("Close pair");
+    const incomplete = (await run("second-empty")).record;
+    expect(nextStep(incomplete, false)).toContain("ETH +0.0199");
+    expect(nextStep(incomplete, false)).toContain("does not send the missing leg");
+    const unknown = (await run("timeout")).record;
+    expect(nextStep(unknown, false)).toContain("Press Reconcile");
+    const noHash: PairRecord = { ...paired, status: "attention", operations: [{ ...paired.operations[0], status: "unknown", hash: undefined }] };
+    expect(nextStep(noHash, false)).toContain("transaction history");
+    const { engine, plan } = await run("success");
+    expect(nextStep(await engine.close(plan.id), false)).toContain("Done");
+    expect(nextStep(paired, true)).toBeNull();
+    for (const r of [paired, incomplete, unknown, noHash]) expect(nextStep(r, false)).not.toMatch(/\b(resend|retry)\b/i);
   });
 });

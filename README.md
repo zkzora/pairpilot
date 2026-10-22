@@ -1,6 +1,6 @@
 # PairPilot
 
-**One ticket for a two-leg perp trade on dreamDEX, with fill-aware recovery.** Long one asset, short another (ETH, BTC, SOL, HYPE) on Somnia Tokyo testnet (chain 50383). PairPilot reads back what actually filled, keeps any one-legged exposure visible, and unwinds it through a reviewed close.
+**PairPilot helps traders understand and resolve long/short pairs whose execution did not finish as planned.** One ticket for a two-leg perp trade on dreamDEX, Somnia Tokyo testnet (chain 50383): long one asset, short another (ETH, BTC, SOL, HYPE). When only one leg fills, PairPilot shows what actually filled and what is still open, says what to do next, and unwinds the rest through a reviewed close. The headline proof is a live recovery: run 5 below.
 
 **Demo video (49 s):** [evidence/demo/pairpilot-demo.webm](evidence/demo/pairpilot-demo.webm). Part 1 is labeled SIMULATION: a HYPE/SOL pair whose second signature is rejected, then the close review and recovery to flat. Part 2 is TESTNET, read-only: live HYPE/SOL books and setup. Live signed trades are listed below with explorer links.
 

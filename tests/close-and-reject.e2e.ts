@@ -36,6 +36,8 @@ test("a rejected second signature leaves the first leg visible, survives reload 
   await page.getByRole("button", { name: "Execute simulation", exact: true }).click();
   await expect(page.getByText("Incomplete", { exact: true })).toBeVisible();
   await expect(page.locator(".chip", { hasText: "Signature rejected" })).toBeVisible();
+  await expect(page.getByLabel("Next step")).toContainText("Decide what to do with ETH +0.0099");
+  await expect(page.getByLabel("Next step")).toContainText("does not send the missing leg");
   await page.reload();
   await expect(page.getByText("Incomplete", { exact: true })).toBeVisible();
   await expect(page.locator(".chip", { hasText: "Signature rejected" })).toBeVisible();

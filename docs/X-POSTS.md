@@ -4,7 +4,21 @@ Drafts for the user to review and post. Each claim maps to a proof file in the r
 
 ---
 
-**1 · The problem and the product**
+**1 · Recovery first**
+
+We deliberately withheld the second leg of a HYPE/ETH pair: a labeled fault injection that stands in for a rejected wallet signature.
+
+PairPilot showed the one-legged HYPE long as incomplete, reconcile sent nothing, the close review unwound only HYPE, and the owner read back flat.
+
+Not atomic, not magic. Just visible, recoverable state on @DreamDEXSomnia.
+
+https://github.com/zkzora/pairpilot
+
+Evidence: `evidence/recovery-injected-hype-eth-proof-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json`.
+
+---
+
+**2 · The problem and the product**
 
 A long/short perp pair is two orders. If one fills and the other doesn't, you're holding naked exposure you never wanted.
 
@@ -18,7 +32,7 @@ Evidence: README "Live testnet proof" table.
 
 ---
 
-**2 · Live runs**
+**3 · Live runs**
 
 Five live runs on @DreamDEXSomnia Tokyo testnet today, each re-checked from chain data (receipt, signer, fills inside price bounds, owner positions back to zero):
 
@@ -30,20 +44,6 @@ Five live runs on @DreamDEXSomnia Tokyo testnet today, each re-checked from chai
 Every transaction is linked: https://github.com/zkzora/pairpilot#live-testnet-proof-somnia-tokyo-chain-50383-2026-10-22
 
 Evidence: `evidence/*-proof-*.json`.
-
----
-
-**3 · Recovery, not just the happy path**
-
-We deliberately withheld the second leg of a HYPE/ETH pair: a labeled fault injection that stands in for a rejected wallet signature.
-
-PairPilot showed the one-legged HYPE long as incomplete, reconcile sent nothing, the close review unwound only HYPE, and the owner read back flat.
-
-Not atomic, not magic. Just visible, recoverable state on @DreamDEXSomnia.
-
-https://github.com/zkzora/pairpilot
-
-Evidence: `evidence/recovery-injected-hype-eth-proof-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json`.
 
 ---
 

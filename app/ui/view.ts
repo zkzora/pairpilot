@@ -155,3 +155,23 @@ export function humanEvent(message: string, plan: PairPlan): string {
     })
     .replace(/0x[0-9a-fA-F]{64}/g, hash => shortHash(hash));
 }
+
+/** The one thing to do next in each state, in plain words. Never suggests resending. */
+export function nextStep(record: PairRecord, busy: boolean): string | null {
+  if (busy) return null;
+  const legs = record.plan.legs, pending = record.operations.find(unresolved);
+  if (pending && !pending.hash) return "Check the signer's transaction history on the explorer first. PairPilot cannot tell whether that order was sent, so do not send any new order until you know.";
+  if (pending || record.status === "opening" || record.status === "closing") return "Press Reconcile to read the receipt and positions. If the receipt is still pending, wait a few seconds and reconcile again. Never sign the same order twice.";
+  if (record.status === "attention") return "Positions on this account changed outside this pair, or a read failed. Check the account in the dreamDEX app, then press Reconcile. Closing stays blocked until the record matches the chain.";
+  if (record.status === "incomplete") {
+    const closable = closableLegs(record);
+    if (!closable.length) return "Nothing PairPilot can send: what remains is below the market minimum. Leave it, or handle it in the dreamDEX app. It stays listed here as open exposure.";
+    const open = closable.map(i => `${legs[i].market.symbol} ${signedBase(record.positions[i], legs[i])}`).join(" and ");
+    return record.operations.some(o => o.kind === "close")
+      ? `Review the close again for ${open}. Prices have moved; the review shows the current bound. A close can fill partly when the book is thin.`
+      : `Decide what to do with ${open}: close it with Close remaining exposure (you review quantity and price bound before signing), or keep it on purpose. PairPilot does not send the missing leg for you.`;
+  }
+  if (record.status === "paired") return "Both legs are open as planned. Reconcile any time to re-read positions; use Close pair when your view changes.";
+  if (record.status === "flat") return "Done. Export JSON to keep the receipts, then start a new pair if you want.";
+  return null;
+}

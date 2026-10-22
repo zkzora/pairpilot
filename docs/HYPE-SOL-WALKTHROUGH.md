@@ -1,10 +1,10 @@
 # Live HYPE/SOL walkthrough (open → reconcile → close)
 
-**Status: NOT performed live.** Only read-only checks and transaction simulation exist for HYPE/SOL. Do not describe HYPE/SOL as live-verified until four receipts and a zero read-back of both owner positions exist. The live-verified pair so far is ETH/BTC (`evidence/operator-pair-proof.json`).
+**Status: performed live on 2026-10-22 from the CLI** (pair `6516f259`): opened paired, reconciled, closed, owner HYPE and SOL read back zero; all four transactions re-verified (`evidence/hype-sol-operator-proof-6516f259-4cfb-4945-b25b-e7d0af214ddd.json`). The steps below repeat it; the browser path B has not been run for HYPE/SOL.
 
 Pair: **long HYPE / short SOL**, 50 USDso total (about 25 per leg), slippage 30 bps, IOC orders, cap 200 USDso. The same steps work reversed (`--pair=SOL/HYPE`).
 
-## Read-only preflight already done (2026-10-22)
+## Read-only preflight before the first live run (2026-10-22)
 
 | Check | Result |
 | --- | --- |

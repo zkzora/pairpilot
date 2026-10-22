@@ -71,7 +71,7 @@ Already implemented: simulation/testnet separation, wallet connection, preview, 
 
 Proposed improvements: per-leg progress UI, review dialog/panel, account-readiness display, Activity, and layout restructuring.
 
-**Funded signed testnet order execution remains unverified at this brief’s creation.** Do not present attractive screens as proof of live trading.
+**At this brief’s creation, funded signed execution was unverified.** Since then (2026-10-22) five live linked-wallet runs, including a recovery, are verified; see the README. Still, never present screens as proof: link the transactions.
 
 ## 4. Trade screen contents
 
@@ -262,7 +262,7 @@ Include:
 
 Only mark checks passed when actually read: network, wallet, gas, margin, positions, resting orders, pending stops. Explain indexer limitations for stop discovery. Otherwise show manual instructions or Not checked.
 
-Link a Bot operator trading is implemented: the browser's Execution panel offers Own wallet or Linked wallet. It is verified live from the CLI only (2026-10-22); present browser operator signing as unverified until a live browser proof exists.
+Link a Bot operator trading is implemented: the browser's Execution panel offers Own wallet or Linked wallet. It is verified live from the CLI and, with the user signing, from the browser (2026-10-22).
 
 No private-key form. CLI keys stay in ignored local files.
 
@@ -356,7 +356,7 @@ Exclude AI chat, copy trading, vaults, tokens, leaderboards, referrals, and soci
 | Local simulation | `src/adapters/simulated.ts` | Implemented |
 | Browser journal/locks | `src/core/journal.ts` | Implemented |
 | Own-wallet signing | `src/adapters/dreamdex.ts` | Implemented; funded execution unverified |
-| Linked-wallet operator signing | `src/adapters/operator.ts`, `dreamdex.ts`, `app/ui/account.tsx` | Implemented; CLI live-verified, browser unverified |
+| Linked-wallet operator signing | `src/adapters/operator.ts`, `dreamdex.ts`, `app/ui/account.tsx` | Implemented; CLI and browser live-verified |
 | Close review | `PairEngine.reviewClose`, `app/ui/close.tsx` | Implemented |
 | Activity | Journal enumeration in the Activity tab | Implemented |
 | Account-readiness UI | SDK-backed read model (Setup, Execution panel) | Implemented |

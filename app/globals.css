@@ -372,3 +372,8 @@ details.ticket-facts summary::-webkit-details-marker, .how-wrap summary::-webkit
 .link-hint { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(91, 140, 255, .33); background: rgba(61, 123, 255, .07); font-size: 12px; color: var(--text-2); }
 .link-hint .found { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .link-hint .link-btn { align-self: flex-start; padding-left: 0; }
+
+.next-step { display: flex; gap: 12px; align-items: baseline; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--inset); }
+.next-step .k { flex: none; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.next-step p { font-size: 13px; color: var(--text-2); }
+@media (max-width: 760px) { .next-step { flex-direction: column; gap: 4px; } }

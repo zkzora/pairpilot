@@ -2,7 +2,9 @@ import { test, expect } from "@playwright/test";
 
 test("landing explains illustrated outcomes and opens the working dashboard", async ({ page }) => {
   await page.goto("/home");
-  await expect(page.getByRole("heading", { name: "Two positions. One clear plan." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "One leg filled. The other didn't." })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("Incomplete pair");
+  await expect(page.getByText("Next: review the close for the leg that is still open", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "HYPE / SOL" }).click();
   await expect(page.getByRole("heading", { name: "Long HYPE / Short SOL" })).toBeVisible();
   await page.getByRole("button", { name: "Receipt pending", exact: true }).click();
@@ -15,7 +17,15 @@ test("landing explains illustrated outcomes and opens the working dashboard", as
 
 test("landing proof is downloadable and links real recorded transactions", async ({ page, request }) => {
   await page.goto("/home");
-  await page.locator("#proof summary").first().click();
+  const recovery = page.locator("#proof details").first();
+  await expect(recovery.locator("summary")).toContainText("HYPE / ETH");
+  await expect(recovery.locator("summary")).toContainText("Recovery · injected fault");
+  await expect(recovery.locator("summary")).toContainText("Recovered to flat");
+  await recovery.locator("summary").click();
+  await expect(recovery).toContainText("not broadcast");
+  await expect(recovery.getByRole("link", { name: /Close HYPE.*0x4532aeec/ })).toHaveAttribute("href", /tokyo\/tx\/0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b/);
+  await expect(page.locator("#proof details")).toHaveCount(5);
+  await page.locator("#proof details", { hasText: "bda58fa7" }).locator("summary").click();
   const receipt = page.getByRole("link", { name: /Open ETH.*0x971ad9d0/ });
   await expect(receipt).toHaveAttribute("href", /tokyo\/tx\/0x971ad9d010d22bafd7d2f11ecf7411eb49a47453c169706f36c88425f4d6e57a/);
   const response = await request.get("/proof/pairpilot-browser-verification.json");

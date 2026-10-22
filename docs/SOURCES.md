@@ -18,7 +18,7 @@ Checked during the 2026-10-22 Asia/Jakarta build session. This is a focused revi
 
 - **Pitch:** fill-aware pair execution for dreamDEX traders.
 - **Implemented:** local UI, exact sizing, sequential own-wallet and linked-wallet operator order adapter, durable journals bound to owner/signer, reconciliation, reviewed close and simulator faults.
-- **Verified:** local tests/browser behavior, real read-only Tokyo SDK/RPC reads, and one signed CLI operator pair opened, reconciled and closed to zero owner positions (`evidence/operator-pair-proof.json`). Browser signing and own-wallet signed orders are not yet verified.
-- **Assumptions:** traders need this workflow on dreamDEX; it offers sufficient improvement over native orders; live venue behavior matches the unverified signing path; atomic batching may improve it.
+- **Verified:** local tests/browser behavior, real read-only Tokyo SDK/RPC reads, and five live linked-wallet runs re-verified from chain data: ETH/BTC (CLI and browser), SOL/BTC (browser), HYPE/SOL (CLI) and an injected-fault HYPE/ETH recovery (CLI). See the README proof table. Own-wallet signed orders are not verified.
+- **Assumptions:** traders need this workflow on dreamDEX; it offers sufficient improvement over native orders; atomic batching may improve it. Demand and the advantage over two manual orders are untested with traders (`docs/USER-TESTS.md`).
 
 Network metadata and contract state can change. Re-run the doctor and discover markets at runtime rather than trusting this ledger as a contract-address manifest.
