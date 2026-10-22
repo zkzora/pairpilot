@@ -1,0 +1,27 @@
+{
+  "mode": "testnet",
+  "kind": "read-only transaction simulation",
+  "at": "2026-10-22T09:54:48.590Z",
+  "planId": "cd37d484-d55b-4783-af0d-858384424f47",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "results": [
+    {
+      "leg": "ETH",
+      "side": "long",
+      "quantity": "10300000000000000",
+      "limitPrice": "2410130000000000000000",
+      "simulation": "ok"
+    },
+    {
+      "leg": "BTC",
+      "side": "short",
+      "quantity": "30000",
+      "limitPrice": "81705300000000000000000",
+      "simulation": "ok"
+    }
+  ],
+  "signedTransactions": 0,
+  "note": "Each leg simulated from the current flat state; leg 2 is re-checked live before it is sent."
+}

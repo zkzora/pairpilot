@@ -1,0 +1,116 @@
+{
+  "mode": "testnet",
+  "kind": "signed linked-wallet operator pair proof",
+  "chainId": 50383,
+  "date": "2026-10-22",
+  "planId": "cd37d484-d55b-4783-af0d-858384424f47", "journal": "evidence/testnet-pair-cd37d484-d55b-4783-af0d-858384424f47.json",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "totalNotionalUSDso": "50 requested",
+  "slippageBps": 30,
+  "transactions": [
+    {
+      "step": "open ETH long",
+      "hash": "0xce94c5e657a7e9dc349fbef716eaf8de523c79f35a7a5cdfa4d5511577a5d1aa",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xce94c5e657a7e9dc349fbef716eaf8de523c79f35a7a5cdfa4d5511577a5d1aa",
+      "explorerCheck": {
+        "http": 200,
+        "hasHash": true
+      },
+      "block": "30108905",
+      "status": "success",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "function": "placeOrderFor",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "isBid": true,
+      "limitPrice": "2410.13",
+      "requestedRaw": "10300000000000000",
+      "expireTimestampNs": "1792662941748000000",
+      "orderType": 2,
+      "filledRaw": "10300000000000000",
+      "avgFillPrice": "2402.88",
+      "gasUsed": "3086099"
+    },
+    {
+      "step": "open BTC short",
+      "hash": "0xd1f3431acc76b411e56fc7900ca3cf81bfe2316f2e281620b0f8212db21427f3",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xd1f3431acc76b411e56fc7900ca3cf81bfe2316f2e281620b0f8212db21427f3",
+      "explorerCheck": {
+        "http": 200,
+        "hasHash": true
+      },
+      "block": "30108926",
+      "status": "success",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "function": "placeOrderFor",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "isBid": false,
+      "limitPrice": "81705.3",
+      "requestedRaw": "30000",
+      "expireTimestampNs": "1792662941748000000",
+      "orderType": 2,
+      "filledRaw": "30000",
+      "avgFillPrice": "81969.2",
+      "gasUsed": "2864122"
+    },
+    {
+      "step": "close ETH (sell)",
+      "hash": "0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00",
+      "explorerCheck": {
+        "http": 200,
+        "hasHash": true
+      },
+      "block": "30109717",
+      "status": "success",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "function": "placeOrderFor",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "isBid": false,
+      "limitPrice": "2395.82",
+      "requestedRaw": "10300000000000000",
+      "expireTimestampNs": "1792663035392000000",
+      "orderType": 2,
+      "filledRaw": "10300000000000000",
+      "avgFillPrice": "2403.02",
+      "gasUsed": "1651327"
+    },
+    {
+      "step": "close BTC (buy)",
+      "hash": "0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5",
+      "explorerCheck": {
+        "http": 200,
+        "hasHash": true
+      },
+      "block": "30109736",
+      "status": "success",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "function": "placeOrderFor",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "isBid": true,
+      "limitPrice": "82250.6",
+      "requestedRaw": "30000",
+      "expireTimestampNs": "1792663037361000000",
+      "orderType": 2,
+      "filledRaw": "30000",
+      "avgFillPrice": "82004.6",
+      "gasUsed": "1587079"
+    }
+  ],
+  "finalReadback": {
+    "ETH owner size": "0",
+    "ETH signer size": "0",
+    "BTC owner size": "0",
+    "BTC signer size": "0",
+    "readAfterBlock": "30110208",
+    "ownerEquityUSDso": "999.990822",
+    "ownerActivePerpPools": 0,
+    "ownerRestingOrders": 0,
+    "signerGasSTT": "4.944731552"
+  }
+}

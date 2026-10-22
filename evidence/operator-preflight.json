@@ -1,0 +1,43 @@
+{
+  "mode": "testnet",
+  "kind": "read-only preflight",
+  "checkedAt": "2026-10-22T10:05:51.847Z",
+  "chainId": 50383,
+  "execution": {
+    "mode": "operator",
+    "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+    "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50"
+  },
+  "signerGasSTT": "4.944731552",
+  "ownerEquityUSDso": "999.990822",
+  "ownerActivePerpPools": 0,
+  "ownerRestingOrders": 0,
+  "ownerPendingStops": 0,
+  "ownerPositions": [
+    {
+      "symbol": "ETH",
+      "size": "0"
+    },
+    {
+      "symbol": "BTC",
+      "size": "0"
+    }
+  ],
+  "permissions": [
+    {
+      "symbol": "ETH",
+      "pool": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "placeOrderFor": true,
+      "cancelOrderFor": true,
+      "reduceOrderFor": true
+    },
+    {
+      "symbol": "BTC",
+      "pool": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "placeOrderFor": true,
+      "cancelOrderFor": true,
+      "reduceOrderFor": true
+    }
+  ],
+  "signedTransactions": 0
+}

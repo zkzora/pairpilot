@@ -1,0 +1,816 @@
+{
+  "mode": "simulation",
+  "checkedAt": "2026-10-21T22:49:11.584Z",
+  "realTransactions": 0,
+  "results": [
+    {
+      "scenario": "success",
+      "afterOpen": "paired",
+      "afterReconcile": "paired",
+      "afterClose": "flat",
+      "finalPositions": [
+        "0",
+        "0"
+      ],
+      "sends": 4,
+      "journal": {
+        "version": 1,
+        "plan": {
+          "id": "demo-success",
+          "account": "simulation",
+          "mode": "simulation",
+          "chainId": 50383,
+          "createdAt": 1792622951575,
+          "expiresAt": 1792623011575,
+          "slippageBps": 30,
+          "legs": [
+            {
+              "market": {
+                "symbol": "ETH",
+                "pool": "0x0000000000000000000000000000000000000001",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 18,
+                "quoteDecimals": 18,
+                "tick": "10000000000000000",
+                "lot": "100000000000000",
+                "minimum": "4000000000000000"
+              },
+              "side": "long",
+              "quantity": "19900000000000000",
+              "limitPrice": "2507500000000000000000",
+              "referencePrice": "2500000000000000000000"
+            },
+            {
+              "market": {
+                "symbol": "BTC",
+                "pool": "0x0000000000000000000000000000000000000002",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 8,
+                "quoteDecimals": 18,
+                "tick": "100000000000000000",
+                "lot": "1000",
+                "minimum": "13000"
+              },
+              "side": "short",
+              "quantity": "59000",
+              "limitPrice": "84745000000000000000000",
+              "referencePrice": "85000000000000000000000"
+            }
+          ]
+        },
+        "status": "flat",
+        "positions": [
+          "0",
+          "0"
+        ],
+        "operations": [
+          {
+            "id": "demo-success:open:0",
+            "leg": 0,
+            "kind": "open",
+            "side": "long",
+            "quantity": "19900000000000000",
+            "limitPrice": "2507500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-success:open:1",
+            "leg": 1,
+            "kind": "open",
+            "side": "short",
+            "quantity": "59000",
+            "limitPrice": "84745000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "filled": "59000"
+          },
+          {
+            "id": "demo-success:close:2",
+            "leg": 0,
+            "kind": "close",
+            "side": "short",
+            "quantity": "19900000000000000",
+            "limitPrice": "2492500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-success:close:3",
+            "leg": 1,
+            "kind": "close",
+            "side": "long",
+            "quantity": "59000",
+            "limitPrice": "85255000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "filled": "59000"
+          }
+        ],
+        "events": [
+          {
+            "at": 1792622951576,
+            "message": "simulation: opening the pair with bounded IOC orders."
+          },
+          {
+            "at": 1792622951576,
+            "message": "Prepared open for ETH."
+          },
+          {
+            "at": 1792622951576,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000001."
+          },
+          {
+            "at": 1792622951576,
+            "message": "open ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951576,
+            "message": "Prepared open for BTC."
+          },
+          {
+            "at": 1792622951576,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000002."
+          },
+          {
+            "at": 1792622951576,
+            "message": "open BTC: 59000 raw units filled."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Positions reconciled against venue state. No orders sent."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Prepared close for ETH."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000003."
+          },
+          {
+            "at": 1792622951577,
+            "message": "close ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Prepared close for BTC."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000004."
+          },
+          {
+            "at": 1792622951577,
+            "message": "close BTC: 59000 raw units filled."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "second-empty",
+      "afterOpen": "incomplete",
+      "afterReconcile": "incomplete",
+      "afterClose": "flat",
+      "finalPositions": [
+        "0",
+        "0"
+      ],
+      "sends": 3,
+      "journal": {
+        "version": 1,
+        "plan": {
+          "id": "demo-second-empty",
+          "account": "simulation",
+          "mode": "simulation",
+          "chainId": 50383,
+          "createdAt": 1792622951577,
+          "expiresAt": 1792623011577,
+          "slippageBps": 30,
+          "legs": [
+            {
+              "market": {
+                "symbol": "ETH",
+                "pool": "0x0000000000000000000000000000000000000001",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 18,
+                "quoteDecimals": 18,
+                "tick": "10000000000000000",
+                "lot": "100000000000000",
+                "minimum": "4000000000000000"
+              },
+              "side": "long",
+              "quantity": "19900000000000000",
+              "limitPrice": "2507500000000000000000",
+              "referencePrice": "2500000000000000000000"
+            },
+            {
+              "market": {
+                "symbol": "BTC",
+                "pool": "0x0000000000000000000000000000000000000002",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 8,
+                "quoteDecimals": 18,
+                "tick": "100000000000000000",
+                "lot": "1000",
+                "minimum": "13000"
+              },
+              "side": "short",
+              "quantity": "59000",
+              "limitPrice": "84745000000000000000000",
+              "referencePrice": "85000000000000000000000"
+            }
+          ]
+        },
+        "status": "flat",
+        "positions": [
+          "0",
+          "0"
+        ],
+        "operations": [
+          {
+            "id": "demo-second-empty:open:0",
+            "leg": 0,
+            "kind": "open",
+            "side": "long",
+            "quantity": "19900000000000000",
+            "limitPrice": "2507500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-second-empty:open:1",
+            "leg": 1,
+            "kind": "open",
+            "side": "short",
+            "quantity": "59000",
+            "limitPrice": "84745000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "filled": "0"
+          },
+          {
+            "id": "demo-second-empty:close:2",
+            "leg": 0,
+            "kind": "close",
+            "side": "short",
+            "quantity": "19900000000000000",
+            "limitPrice": "2492500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+            "filled": "19900000000000000"
+          }
+        ],
+        "events": [
+          {
+            "at": 1792622951577,
+            "message": "simulation: opening the pair with bounded IOC orders."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Prepared open for ETH."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000001."
+          },
+          {
+            "at": 1792622951577,
+            "message": "open ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Prepared open for BTC."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000002."
+          },
+          {
+            "at": 1792622951577,
+            "message": "open BTC: 0 raw units filled."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Positions reconciled against venue state. No orders sent."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Prepared close for ETH."
+          },
+          {
+            "at": 1792622951577,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000003."
+          },
+          {
+            "at": 1792622951578,
+            "message": "close ETH: 19900000000000000 raw units filled."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "partial",
+      "afterOpen": "incomplete",
+      "afterReconcile": "incomplete",
+      "afterClose": "flat",
+      "finalPositions": [
+        "0",
+        "0"
+      ],
+      "sends": 4,
+      "journal": {
+        "version": 1,
+        "plan": {
+          "id": "demo-partial",
+          "account": "simulation",
+          "mode": "simulation",
+          "chainId": 50383,
+          "createdAt": 1792622951578,
+          "expiresAt": 1792623011578,
+          "slippageBps": 30,
+          "legs": [
+            {
+              "market": {
+                "symbol": "ETH",
+                "pool": "0x0000000000000000000000000000000000000001",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 18,
+                "quoteDecimals": 18,
+                "tick": "10000000000000000",
+                "lot": "100000000000000",
+                "minimum": "4000000000000000"
+              },
+              "side": "long",
+              "quantity": "19900000000000000",
+              "limitPrice": "2507500000000000000000",
+              "referencePrice": "2500000000000000000000"
+            },
+            {
+              "market": {
+                "symbol": "BTC",
+                "pool": "0x0000000000000000000000000000000000000002",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 8,
+                "quoteDecimals": 18,
+                "tick": "100000000000000000",
+                "lot": "1000",
+                "minimum": "13000"
+              },
+              "side": "short",
+              "quantity": "59000",
+              "limitPrice": "84745000000000000000000",
+              "referencePrice": "85000000000000000000000"
+            }
+          ]
+        },
+        "status": "flat",
+        "positions": [
+          "0",
+          "0"
+        ],
+        "operations": [
+          {
+            "id": "demo-partial:open:0",
+            "leg": 0,
+            "kind": "open",
+            "side": "long",
+            "quantity": "19900000000000000",
+            "limitPrice": "2507500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-partial:open:1",
+            "leg": 1,
+            "kind": "open",
+            "side": "short",
+            "quantity": "59000",
+            "limitPrice": "84745000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "filled": "29000"
+          },
+          {
+            "id": "demo-partial:close:2",
+            "leg": 0,
+            "kind": "close",
+            "side": "short",
+            "quantity": "19900000000000000",
+            "limitPrice": "2492500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-partial:close:3",
+            "leg": 1,
+            "kind": "close",
+            "side": "long",
+            "quantity": "29000",
+            "limitPrice": "85255000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "filled": "29000"
+          }
+        ],
+        "events": [
+          {
+            "at": 1792622951578,
+            "message": "simulation: opening the pair with bounded IOC orders."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Prepared open for ETH."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000001."
+          },
+          {
+            "at": 1792622951578,
+            "message": "open ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Prepared open for BTC."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000002."
+          },
+          {
+            "at": 1792622951578,
+            "message": "open BTC: 29000 raw units filled."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Positions reconciled against venue state. No orders sent."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Prepared close for ETH."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000003."
+          },
+          {
+            "at": 1792622951578,
+            "message": "close ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Prepared close for BTC."
+          },
+          {
+            "at": 1792622951578,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000004."
+          },
+          {
+            "at": 1792622951578,
+            "message": "close BTC: 29000 raw units filled."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "timeout",
+      "afterOpen": "attention",
+      "afterReconcile": "paired",
+      "afterClose": "flat",
+      "finalPositions": [
+        "0",
+        "0"
+      ],
+      "sends": 4,
+      "journal": {
+        "version": 1,
+        "plan": {
+          "id": "demo-timeout",
+          "account": "simulation",
+          "mode": "simulation",
+          "chainId": 50383,
+          "createdAt": 1792622951579,
+          "expiresAt": 1792623011579,
+          "slippageBps": 30,
+          "legs": [
+            {
+              "market": {
+                "symbol": "ETH",
+                "pool": "0x0000000000000000000000000000000000000001",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 18,
+                "quoteDecimals": 18,
+                "tick": "10000000000000000",
+                "lot": "100000000000000",
+                "minimum": "4000000000000000"
+              },
+              "side": "long",
+              "quantity": "19900000000000000",
+              "limitPrice": "2507500000000000000000",
+              "referencePrice": "2500000000000000000000"
+            },
+            {
+              "market": {
+                "symbol": "BTC",
+                "pool": "0x0000000000000000000000000000000000000002",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 8,
+                "quoteDecimals": 18,
+                "tick": "100000000000000000",
+                "lot": "1000",
+                "minimum": "13000"
+              },
+              "side": "short",
+              "quantity": "59000",
+              "limitPrice": "84745000000000000000000",
+              "referencePrice": "85000000000000000000000"
+            }
+          ]
+        },
+        "status": "flat",
+        "positions": [
+          "0",
+          "0"
+        ],
+        "operations": [
+          {
+            "id": "demo-timeout:open:0",
+            "leg": 0,
+            "kind": "open",
+            "side": "long",
+            "quantity": "19900000000000000",
+            "limitPrice": "2507500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-timeout:open:1",
+            "leg": 1,
+            "kind": "open",
+            "side": "short",
+            "quantity": "59000",
+            "limitPrice": "84745000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "message": "Injected transport timeout AFTER broadcast. The transaction actually filled.",
+            "filled": "59000"
+          },
+          {
+            "id": "demo-timeout:close:2",
+            "leg": 0,
+            "kind": "close",
+            "side": "short",
+            "quantity": "19900000000000000",
+            "limitPrice": "2492500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-timeout:close:3",
+            "leg": 1,
+            "kind": "close",
+            "side": "long",
+            "quantity": "59000",
+            "limitPrice": "85255000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "filled": "59000"
+          }
+        ],
+        "events": [
+          {
+            "at": 1792622951579,
+            "message": "simulation: opening the pair with bounded IOC orders."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Prepared open for ETH."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000001."
+          },
+          {
+            "at": 1792622951579,
+            "message": "open ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Prepared open for BTC."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000002."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Injected transport timeout AFTER broadcast. The transaction actually filled."
+          },
+          {
+            "at": 1792622951579,
+            "message": "open BTC: 59000 raw units filled."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Positions reconciled against venue state. No orders sent."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Prepared close for ETH."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000003."
+          },
+          {
+            "at": 1792622951579,
+            "message": "close ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Prepared close for BTC."
+          },
+          {
+            "at": 1792622951579,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000004."
+          },
+          {
+            "at": 1792622951579,
+            "message": "close BTC: 59000 raw units filled."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "recovery-empty",
+      "afterOpen": "incomplete",
+      "afterReconcile": "incomplete",
+      "afterClose": "incomplete",
+      "finalPositions": [
+        "19900000000000000",
+        "0"
+      ],
+      "sends": 3,
+      "journal": {
+        "version": 1,
+        "plan": {
+          "id": "demo-recovery-empty",
+          "account": "simulation",
+          "mode": "simulation",
+          "chainId": 50383,
+          "createdAt": 1792622951579,
+          "expiresAt": 1792623011579,
+          "slippageBps": 30,
+          "legs": [
+            {
+              "market": {
+                "symbol": "ETH",
+                "pool": "0x0000000000000000000000000000000000000001",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 18,
+                "quoteDecimals": 18,
+                "tick": "10000000000000000",
+                "lot": "100000000000000",
+                "minimum": "4000000000000000"
+              },
+              "side": "long",
+              "quantity": "19900000000000000",
+              "limitPrice": "2507500000000000000000",
+              "referencePrice": "2500000000000000000000"
+            },
+            {
+              "market": {
+                "symbol": "BTC",
+                "pool": "0x0000000000000000000000000000000000000002",
+                "marginBank": "0x0000000000000000000000000000000000000003",
+                "baseDecimals": 8,
+                "quoteDecimals": 18,
+                "tick": "100000000000000000",
+                "lot": "1000",
+                "minimum": "13000"
+              },
+              "side": "short",
+              "quantity": "59000",
+              "limitPrice": "84745000000000000000000",
+              "referencePrice": "85000000000000000000000"
+            }
+          ]
+        },
+        "status": "incomplete",
+        "positions": [
+          "19900000000000000",
+          "0"
+        ],
+        "operations": [
+          {
+            "id": "demo-recovery-empty:open:0",
+            "leg": 0,
+            "kind": "open",
+            "side": "long",
+            "quantity": "19900000000000000",
+            "limitPrice": "2507500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "filled": "19900000000000000"
+          },
+          {
+            "id": "demo-recovery-empty:open:1",
+            "leg": 1,
+            "kind": "open",
+            "side": "short",
+            "quantity": "59000",
+            "limitPrice": "84745000000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+            "filled": "0"
+          },
+          {
+            "id": "demo-recovery-empty:close:2",
+            "leg": 0,
+            "kind": "close",
+            "side": "short",
+            "quantity": "19900000000000000",
+            "limitPrice": "2492500000000000000000",
+            "status": "confirmed",
+            "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+            "filled": "0"
+          }
+        ],
+        "events": [
+          {
+            "at": 1792622951580,
+            "message": "simulation: opening the pair with bounded IOC orders."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Prepared open for ETH."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000001."
+          },
+          {
+            "at": 1792622951580,
+            "message": "open ETH: 19900000000000000 raw units filled."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Prepared open for BTC."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000002."
+          },
+          {
+            "at": 1792622951580,
+            "message": "open BTC: 0 raw units filled."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Positions reconciled against venue state. No orders sent."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Prepared close for ETH."
+          },
+          {
+            "at": 1792622951580,
+            "message": "Broadcast 0x0000000000000000000000000000000000000000000000000000000000000003."
+          },
+          {
+            "at": 1792622951580,
+            "message": "close ETH: 0 raw units filled."
+          }
+        ]
+      }
+    }
+  ]
+}

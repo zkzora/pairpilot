@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-10-22T06:44:41.612Z",
+  "network": {
+    "id": 50383,
+    "name": "Somnia Tokyo / Hideki testnet",
+    "rpc": "https://api.hideki2.infra.testnet.somnia.network",
+    "ws": "wss://api.hideki2.infra.testnet.somnia.network/ws",
+    "indexer": "https://hideki-dev.smk.somnia.host/v1/graphql",
+    "explorer": "https://explorer.testnet.somnia.network/tokyo"
+  },
+  "sdk": "0.32.1",
+  "signedTransactions": 0,
+  "chainId": 50383,
+  "block": "29994852",
+  "marketCount": 21,
+  "pair": [
+    {
+      "symbol": "ETH",
+      "pool": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+      "baseDecimals": 18,
+      "quoteDecimals": 18,
+      "tickSize": "10000000000000000",
+      "lotSize": "100000000000000",
+      "minQuantity": "4000000000000000",
+      "mark": "2428268569226312000000",
+      "priceable": true,
+      "fundingRate": "100000000000000",
+      "fundingWindowSec": 28800,
+      "fullyWired": true
+    },
+    {
+      "symbol": "BTC",
+      "pool": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+      "baseDecimals": 8,
+      "quoteDecimals": 18,
+      "tickSize": "100000000000000000",
+      "lotSize": "1000",
+      "minQuantity": "13000",
+      "mark": "82425795043827516000000",
+      "priceable": true,
+      "fundingRate": "1050952423805239",
+      "fundingWindowSec": 28800,
+      "fullyWired": true
+    }
+  ],
+  "status": "ok"
+}

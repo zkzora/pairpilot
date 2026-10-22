@@ -1,0 +1,28 @@
+{
+  "mode": "testnet",
+  "kind": "read-only owner identification",
+  "chainId": 50383,
+  "checkedAt": "2026-10-22",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "method": "eth_getLogs on OperatorPermissionsRegistry 0x6B2FbfeD328FF5F20C0BE7D3C3437613aFFE8D3a filtered by topic3 = signer, blocks 29993000 to 30105595 in 1000-block windows; then each pool's own isOperatorAuthorized(owner, signer, selector).",
+  "grantEvents": {
+    "topic0": "0x10f879368ceb20c35c69315bc27ed8488f731570cf213d3e1bc2ad9b7749de28",
+    "layout": "topic1 = pool, topic2 = owner, topic3 = operator (signer), data = selector + approved",
+    "count": 63,
+    "distinctOwners": ["0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5"],
+    "pools": 21,
+    "selectorsApproved": { "placeOrderFor 0x80054449": 21, "cancelOrderFor 0xe37b444b": 21, "reduceOrderFor 0x364c2587": 21 },
+    "transactions": [
+      { "hash": "0x3d1695b00a4450858d888789710d96ac251e69dc9e815af900a7239a9d4190b4", "block": 29993931, "from": "0xa4d517b65f89cf165943d961ea9efbae98d8d16c", "to": "0x436dae2ef8e8eece9960b3c3a9da6731a2d6c1f5" },
+      { "hash": "0x2d420cee2bc583d63cf80ca5239c6596802f34cf7009dea6ff025d9f0b721b7c", "block": 29993938, "from": "0xa4d517b65f89cf165943d961ea9efbae98d8d16c", "to": "0x436dae2ef8e8eece9960b3c3a9da6731a2d6c1f5" }
+    ],
+    "note": "Both grant transactions call the owner contract (a smart-account app wallet) through relayer 0xa4d5…d16c; the registry records the owner as msg.sender."
+  },
+  "poolAuthorization": {
+    "ETH 0xd6cb1dd58580b84d76068ac21594219ce03aeddf": { "placeOrderFor": true, "cancelOrderFor": true, "reduceOrderFor": true },
+    "BTC 0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0": { "placeOrderFor": true, "cancelOrderFor": true, "reduceOrderFor": true },
+    "negativeControl": "isOperatorAuthorized(signer, owner, placeOrderFor) on the ETH pool = false"
+  },
+  "signedTransactions": 0
+}

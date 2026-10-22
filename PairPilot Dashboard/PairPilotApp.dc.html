@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#071116}*{box-sizing:border-box}button,input{font-family:inherit}a{color:#5B8CFF;text-decoration:none}a:hover{color:#8DB0FF;text-decoration:underline}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #5B8CFF;outline-offset:2px}</style>
+</helmet>
+<div style="min-height:{{ minH }};background:#071116;color:#F6FEFD;font-family:Geist,system-ui,sans-serif;font-size:14px;line-height:1.45;display:flex;flex-direction:column;font-variant-numeric:tabular-nums">
+
+<header style="display:flex;align-items:center;gap:20px;height:56px;padding:0 {{ pad }};border-bottom:1px solid #273035;background:#0F1A1F">
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg width="24" height="21" viewBox="200 254 854 746" aria-hidden="true" style="display:block;flex:none"><defs><linearGradient id="ppLogoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4D97FF"></stop><stop offset="1" stop-color="#004CFF"></stop></linearGradient></defs><path d="M204 258H851V505H530V702H204Z" fill="url(#ppLogoGrad)"></path><path d="M723 552H1050V996H403V748H723Z" fill="url(#ppLogoGrad)"></path></svg>
+    <span style="font-weight:600;font-size:16px;letter-spacing:-0.01em">PairPilot</span>
+  </div>
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+    <nav style="display:flex;gap:2px;align-self:stretch">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+        <button onClick="{{ n.go }}" style="background:none;border:0;border-bottom:2px solid {{ n.line }};color:{{ n.fg }};padding:2px 12px 0;font-size:14px;font-weight:500;cursor:pointer">{{ n.label }}</button>
+      </sc-for>
+    </nav>
+  </sc-if>
+  <div style="flex:1"></div>
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+    <div role="radiogroup" aria-label="Mode" style="display:flex;padding:3px;border:1px solid #273035;border-radius:8px;gap:2px">
+      <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+        <button onClick="{{ m.go }}" style="border:0;border-radius:6px;padding:5px 12px;font-size:13px;font-weight:500;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }}">{{ m.label }}</button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ connected }}">
+      <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:#949E9C;padding:6px 10px;border:1px solid #273035;border-radius:8px"><span style="width:7px;height:7px;border-radius:50%;background:#5B8CFF"></span>Somnia Tokyo · 50383</div>
+    </sc-if>
+  </sc-if>
+  <sc-if value="{{ connected }}">
+    <div style="display:flex;align-items:center;border:1px solid #273035;border-radius:8px;overflow:hidden">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;padding:6px 10px">0x436d…c1F5</span>
+      <button title="Copy address" onClick="{{ copyAddr }}" style="border:0;border-left:1px solid #273035;background:#0F1A1F;color:#949E9C;font-size:12px;padding:7px 10px;cursor:pointer">{{ copyLabel }}</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ disconnected }}">
+    <button onClick="{{ connect }}" style="border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer">Connect wallet</button>
+  </sc-if>
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}"><a href="#" onClick="{{ showHelp }}" style="font-size:13px;color:#949E9C">Help</a></sc-if>
+</header>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:9px {{ pad }};background:{{ bannerBg }};border-bottom:1px solid {{ bannerBd }};font-size:13px">
+  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;padding:3px 7px;border-radius:4px;color:{{ modeT.fg }};background:{{ modeT.bg }}">{{ modeLabel }}</span>
+  <span style="color:#D2DAD7;flex:1 1 200px">{{ modeCopy }}</span>
+  <sc-if value="{{ isMobile }}">
+    <div role="radiogroup" aria-label="Mode" style="display:flex;padding:3px;border:1px solid #273035;border-radius:8px;gap:2px;background:#071116">
+      <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+        <button onClick="{{ m.go }}" style="border:0;border-radius:6px;padding:8px 12px;min-height:36px;font-size:13px;font-weight:500;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }}">{{ m.label }}</button>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+
+<main style="flex:1;display:flex;flex-direction:column;gap:16px;padding:{{ pad }}">
+
+<sc-if value="{{ isTrade }}" hint-placeholder-val="{{ true }}">
+
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+  <div style="order:{{ mktOrder }};display:flex;flex-wrap:wrap;gap:1px;background:#273035;border:1px solid #273035;border-radius:10px;overflow:hidden">
+    <sc-for list="{{ markets }}" as="mk" hint-placeholder-count="2">
+      <div style="flex:1 1 260px;background:#0F1A1F;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 24px">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:112px">
+          <span style="font-size:12px;color:#949E9C">{{ mk.name }} · Mark</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:500;letter-spacing:-0.01em">{{ mk.mark }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:12px;color:#949E9C">Bid / Ask</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px">{{ mk.bid }} / {{ mk.ask }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:12px;color:#949E9C">Funding</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px">{{ mk.funding }} <span style="color:#949E9C;font-family:Geist,sans-serif">per 8h</span></span>
+        </div>
+      </div>
+    </sc-for>
+    <div style="flex:1 1 240px;background:#0F1A1F;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+        <span style="align-self:flex-start;white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 6px;border-radius:4px;color:{{ snapT.fg }};background:{{ snapT.bg }}">{{ snapLabel }}</span>
+        <span style="font-size:12px;color:#949E9C">{{ snapMeta }}</span>
+      </div>
+      <button onClick="{{ refreshPrices }}" style="flex:none;border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:8px 12px;min-height:36px;font-size:13px;cursor:pointer">Refresh prices</button>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isMobile }}">
+    <div style="order:{{ mktOrder }};background:#0F1A1F;border:1px solid #273035;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ markets }}" as="mk">
+        <div style="display:flex;align-items:baseline;gap:8px;font-size:12px">
+          <span style="color:#949E9C;width:64px;flex:none">{{ mk.name }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:500">{{ mk.mark }}</span>
+          <span style="margin-left:auto;font-family:'Geist Mono',monospace;color:#949E9C">{{ mk.bid }} / {{ mk.ask }}</span>
+        </div>
+      </sc-for>
+      <span style="font-size:11px;color:#949E9C">Funding per 8h · ETH +0.0042% · BTC +0.0031%</span>
+      <div style="display:flex;align-items:center;gap:8px;border-top:1px solid #1D282C;padding-top:6px">
+        <span style="flex:none;font-size:10px;font-weight:600;letter-spacing:.06em;padding:2px 6px;border-radius:4px;color:{{ snapT.fg }};background:{{ snapT.bg }}">{{ snapLabel }}</span>
+        <span style="font-size:11px;color:#949E9C;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ snapMetaShort }}</span>
+        <button onClick="{{ refreshPrices }}" style="margin-left:auto;flex:none;border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:0 12px;min-height:36px;font-size:12px;cursor:pointer">Refresh</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="order:1;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+
+    <section style="flex:1 1 560px;min-width:0;background:#0F1A1F;border:1px solid #273035;border-radius:12px">
+
+      <sc-if value="{{ isNew }}">
+        <div style="padding:{{ wsPad }};display:flex;flex-direction:column;gap:{{ wsGapL }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;color:#949E9C;letter-spacing:.06em;text-transform:uppercase">No active pair</span>
+            <h1 style="margin:0;font-size:28px;line-height:1.15;font-weight:600;letter-spacing:-0.02em;text-wrap:pretty">Trade the pair. Track every leg.</h1>
+            <p style="margin:0;color:#949E9C;max-width:520px;text-wrap:pretty">Long ETH and short BTC in one plan. See actual fills and manage unfinished execution.</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:stretch">
+            <sc-for list="{{ exampleLegs }}" as="x" hint-placeholder-count="2">
+              <div style="flex:1 1 220px;border:1px solid #273035;border-radius:10px;background:#0A1519;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:3px 7px;border-radius:4px;color:{{ x.t.fg }};background:{{ x.t.bg }}">{{ x.side }}</span>
+                  <span style="font-weight:600;font-size:15px">{{ x.market }}</span>
+                  <span style="margin-left:auto;font-size:12px;color:#949E9C">{{ x.seq }}</span>
+                </div>
+                <span style="font-size:13px;color:#949E9C;text-wrap:pretty">{{ x.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <button onClick="{{ toggleHow }}" aria-expanded="{{ howOpen }}" style="align-self:flex-start;display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;min-height:32px;color:#F6FEFD;font-size:13px;font-weight:600;cursor:pointer">How it works <span style="font-family:'Geist Mono',monospace;color:#949E9C">{{ howGlyph }}</span></button>
+            <sc-if value="{{ howOpen }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+              <sc-for list="{{ how }}" as="h" hint-placeholder-count="3">
+                <div style="display:flex;gap:10px">
+                  <span style="flex:none;width:24px;height:24px;border-radius:50%;border:1px solid #34424A;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'Geist Mono',monospace;color:#D2DAD7">{{ h.n }}</span>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:500">{{ h.title }}</span><span style="font-size:13px;color:#949E9C;text-wrap:pretty">{{ h.body }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isReview }}">
+        <div style="padding:{{ wsPad }};display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px">
+            <h2 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.01em">Review pair</h2>
+            <span style="font-size:13px;color:#949E9C">Nothing is signed yet</span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+              <span style="font-size:12px;color:#949E9C">Preview expires in</span>
+              <span style="font-family:'Geist Mono',monospace;font-size:14px;font-weight:500;padding:3px 8px;border-radius:6px;color:{{ rv.timerT.fg }};background:{{ rv.timerT.bg }}">{{ rv.timer }}</span>
+            </div>
+            <div style="flex:1 1 100%;height:3px;background:#273035;border-radius:2px;overflow:hidden"><div style="height:100%;width:{{ rv.pct }};background:{{ rv.timerT.fg }}"></div></div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:12px">
+            <sc-for list="{{ rv.legs }}" as="l" hint-placeholder-count="2">
+              <div style="flex:1 1 260px;min-width:0;border:1px solid #273035;border-radius:10px;background:#0A1519;padding:16px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:3px 7px;border-radius:4px;color:{{ l.sideT.fg }};background:{{ l.sideT.bg }}">{{ l.side }}</span>
+                  <span style="font-weight:600;font-size:15px">{{ l.market }}</span>
+                  <span style="margin-left:auto;font-size:12px;color:#949E9C">{{ l.seq }}</span>
+                </div>
+                <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px">
+                  <span style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:500">{{ l.qty }}</span>
+                  <span style="font-size:13px;color:#949E9C">{{ l.notional }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px">
+                  <sc-for list="{{ l.rows }}" as="r">
+                    <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:#949E9C">{{ r.k }}</span><span style="font-size:13px">{{ r.v }}</span></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #1D282C;padding-top:12px">
+                  <sc-for list="{{ l.checks }}" as="c">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:#949E9C">{{ c.k }}</span><span style="margin-left:auto;padding:1px 6px;border-radius:4px;color:{{ c.t.fg }};background:{{ c.t.bg }}">{{ c.v }}</span></div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="border:1px solid #273035;border-radius:10px;overflow:hidden;background:#0A1519">
+            <div style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-bottom:1px solid #1D282C">
+              <span style="font-size:13px;font-weight:600">Notional after lot rounding</span>
+              <span style="font-size:12px;color:#949E9C;text-wrap:pretty">{{ rv.basisNote }}</span>
+            </div>
+            <sc-for list="{{ rv.basis }}" as="b" hint-placeholder-count="2">
+              <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 14px;border-bottom:1px solid #1D282C;font-size:13px">
+                <span style="display:flex;gap:6px;align-items:center;min-width:120px"><span style="font-size:10px;font-weight:600;letter-spacing:.06em;padding:2px 5px;border-radius:4px;color:{{ b.t.fg }};background:{{ b.t.bg }}">{{ b.side }}</span>{{ b.m }}</span>
+                <span style="font-family:'Geist Mono',monospace;color:#D2DAD7">{{ b.calc }} <span style="font-family:Geist,sans-serif;color:#949E9C">{{ b.pxKind }}</span></span>
+                <span style="margin-left:auto;font-family:'Geist Mono',monospace">{{ b.val }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 14px">
+              <span style="font-weight:600">Total</span>
+              <span style="font-size:12px;color:#949E9C">{{ rv.totalSub }}</span>
+              <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-weight:600">{{ rv.total }}</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:#273035;border:1px solid #273035;border-radius:10px;overflow:hidden">
+            <sc-for list="{{ rv.facts }}" as="f" hint-placeholder-count="6">
+              <div style="background:#0A1519;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#949E9C">{{ f.k }}</span><span style="font-size:13px">{{ f.v }}</span></div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:rgba(245,179,66,.08);border:1px solid rgba(245,179,66,.28)">
+            <span style="flex:none;width:18px;height:18px;border-radius:4px;background:#f5b342;color:#071116;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center">!</span>
+            <span style="font-size:13px;color:#e6d3ad;text-wrap:pretty">Orders are sent one after another, not atomically. One leg can fill without the other. If that happens, you choose how to close the remaining exposure.</span>
+          </div>
+
+          <sc-if value="{{ showAck }}">
+            <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;color:#D2DAD7;min-height:44px">
+              <input type="checkbox" checked="{{ ack }}" onChange="{{ toggleAck }}" style="width:18px;height:18px;margin:1px 0 0;accent-color:#5B8CFF;flex:none">
+              <span style="text-wrap:pretty">This account is used only for PairPilot. No bot or other trade is active on it.</span>
+            </label>
+          </sc-if>
+
+          <sc-if value="{{ rv.low }}">
+            <div style="font-size:13px;color:#f5b342">Refresh preview to allow enough time for both orders.</div>
+          </sc-if>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end">
+            <button onClick="{{ toEdit }}" style="border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:0 16px;min-height:44px;font-size:14px;font-weight:500;cursor:pointer">Edit</button>
+            <button onClick="{{ rv.cta.go }}" style="border:1px solid {{ rv.cta.bd }};background:{{ rv.cta.bg }};color:{{ rv.cta.fg }};cursor:{{ rv.cta.cur }};border-radius:8px;padding:0 20px;min-height:44px;font-size:14px;font-weight:600">{{ rv.cta.label }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isClose }}">
+        <div style="padding:{{ wsPad }};display:flex;flex-direction:column;gap:{{ wsGap }}">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px">
+            <h2 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ cr.title }}</h2>
+            <span style="font-size:13px;color:#949E9C">Nothing is signed yet</span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+              <span style="font-size:12px;color:#949E9C">Preview expires in</span>
+              <span style="font-family:'Geist Mono',monospace;font-size:14px;font-weight:500;padding:3px 8px;border-radius:6px;color:#949E9C;background:rgba(148,158,156,.12)">0:51</span>
+            </div>
+            <div style="flex:1 1 100%;height:3px;background:#273035;border-radius:2px;overflow:hidden"><div style="height:100%;width:85%;background:#949E9C"></div></div>
+          </div>
+          <span style="font-size:12px;color:#949E9C">Pair <span style="font-family:'Geist Mono',monospace;color:#D2DAD7">7f3a…c21e</span> · close sized from positions read at block 18,443,002 · 03:58:40 UTC</span>
+
+          <div style="display:flex;flex-wrap:wrap;gap:12px">
+            <sc-for list="{{ cr.legs }}" as="l" hint-placeholder-count="2">
+              <div style="flex:1 1 260px;min-width:0;border:1px solid #273035;border-radius:10px;background:#0A1519;padding:{{ legPad }};display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:3px 7px;border-radius:4px;color:{{ l.sideT.fg }};background:{{ l.sideT.bg }}">{{ l.side }}</span>
+                  <span style="font-weight:600;font-size:15px">{{ l.market }}</span>
+                  <span style="margin-left:auto;flex:none;white-space:nowrap;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;color:{{ l.actT.fg }};background:{{ l.actT.bg }}">{{ l.act }}</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px">
+                  <span style="font-size:12px;color:#949E9C">Open now</span>
+                  <span style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:500">{{ l.open }}</span>
+                  <span style="font-size:13px;color:#949E9C">{{ l.val }}</span>
+                </div>
+                <sc-if value="{{ l.hasRows }}">
+                  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px">
+                    <sc-for list="{{ l.rows }}" as="r">
+                      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:#949E9C">{{ r.k }}</span><span style="font-size:13px">{{ r.v }}</span></div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #1D282C;padding-top:12px">
+                    <sc-for list="{{ l.checks }}" as="c">
+                      <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="color:#949E9C">{{ c.k }}</span><span style="margin-left:auto;padding:1px 6px;border-radius:4px;color:{{ c.t.fg }};background:{{ c.t.bg }}">{{ c.v }}</span></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:#273035;border:1px solid #273035;border-radius:10px;overflow:hidden">
+            <sc-for list="{{ cr.facts }}" as="f" hint-placeholder-count="4">
+              <div style="background:#0A1519;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#949E9C">{{ f.k }}</span><span style="font-size:13px">{{ f.v }}</span></div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:rgba(245,179,66,.08);border:1px solid rgba(245,179,66,.28)">
+            <span style="flex:none;width:18px;height:18px;border-radius:4px;background:#f5b342;color:#071116;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center">!</span>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:13px;font-weight:600;color:#f5b342">Closing may partially fill or fail. Remaining exposure stays open.</span>
+              <span style="font-size:13px;color:#e6d3ad;text-wrap:pretty">Close orders are sent one after another. Size is checked against the read-back position in the app, not enforced by the contract (no reduce-only). If the position changed outside PairPilot, refresh before signing.</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end">
+            <button onClick="{{ cr.cancel }}" style="flex:{{ btnFlex }};border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:0 16px;min-height:44px;font-size:14px;font-weight:500;cursor:pointer">Cancel</button>
+            <button onClick="{{ cr.cta.go }}" style="flex:{{ btnFlex }};border:1px solid {{ cr.cta.bd }};background:{{ cr.cta.bg }};color:{{ cr.cta.fg }};cursor:{{ cr.cta.cur }};border-radius:8px;padding:0 20px;min-height:44px;font-size:14px;font-weight:600">{{ cr.cta.label }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPost }}">
+        <div style="padding:{{ wsPad }};display:flex;flex-direction:column;gap:{{ wsGap }}">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px">
+            <span style="font-size:13px;color:#949E9C">Pair <span style="font-family:'Geist Mono',monospace;color:#D2DAD7">7f3a…c21e</span></span>
+            <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 6px;border-radius:4px;color:{{ modeT.fg }};background:{{ modeT.bg }}">{{ modeLabel }}</span>
+            <span style="margin-left:auto;font-size:12px;color:#949E9C">Reconciled {{ ps.recon }}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+            <span style="font-size:{{ titleSize }};font-weight:600;letter-spacing:-0.02em;color:{{ ps.ot.fg }}">{{ ps.overall }}</span>
+            <span style="font-size:14px;color:#949E9C">{{ ps.sub }}</span>
+          </div>
+
+          <sc-if value="{{ ps.hasAlert }}">
+            <div role="status" style="display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:{{ ps.alert.t.bg }};border:1px solid {{ ps.alert.bd }}">
+              <span style="flex:none;width:18px;height:18px;border-radius:4px;background:{{ ps.alert.t.fg }};color:#071116;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center">{{ ps.alert.glyph }}</span>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <span style="font-weight:600;font-size:14px;color:{{ ps.alert.t.fg }};text-wrap:pretty">{{ ps.alert.title }}</span>
+                <span style="font-size:13px;color:#D2DAD7;text-wrap:pretty">{{ ps.alert.body }}</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;flex-wrap:wrap;gap:12px">
+            <sc-for list="{{ ps.legs }}" as="l" hint-placeholder-count="2">
+              <div style="flex:1 1 280px;min-width:0;border:1px solid #273035;border-radius:10px;background:#0A1519;padding:{{ legPad }};display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:3px 7px;border-radius:4px;color:{{ l.sideT.fg }};background:{{ l.sideT.bg }}">{{ l.side }}</span>
+                  <span style="font-weight:600;font-size:15px">{{ l.market }}</span>
+                  <span style="margin-left:auto;flex:none;white-space:nowrap;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;color:{{ l.st.fg }};background:{{ l.st.bg }}">{{ l.status }}</span>
+                </div>
+                <sc-if value="{{ l.showSteps }}">
+                  <div style="display:flex;gap:4px">
+                    <sc-for list="{{ l.steps }}" as="sp">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0"><div style="height:3px;border-radius:2px;background:{{ sp.bar }}"></div><span style="font-size:11px;color:{{ sp.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sp.label }}</span></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px">
+                  <sc-for list="{{ l.rows }}" as="r">
+                    <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:#949E9C">{{ r.k }}</span><span style="font-family:'Geist Mono',monospace;font-size:14px;color:{{ r.c }}">{{ r.v }}</span></div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ l.hasNote }}"><span style="font-size:12px;color:#949E9C;text-wrap:pretty">{{ l.note }}</span></sc-if>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;border-top:1px solid #1D282C;padding-top:12px;min-height:32px">
+                  <span style="color:#949E9C">Receipt</span>
+                  <sc-if value="{{ l.hasTx }}"><span style="font-family:'Geist Mono',monospace;color:#D2DAD7">{{ l.tx }}</span><a href="#" style="margin-left:auto">Explorer ↗</a></sc-if>
+                  <sc-if value="{{ l.noTx }}"><span style="color:#5E6A68">{{ l.txNote }}</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="border:1px solid #273035;border-radius:10px;background:#0A1519;display:flex;flex-direction:column">
+            <div style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px">
+              <div style="display:flex;flex-direction:column;gap:3px;flex:1 1 260px;min-width:0">
+                <span style="font-size:11px;font-weight:600;color:#949E9C;text-transform:uppercase;letter-spacing:.08em">Next step</span>
+                <span style="font-size:13px;color:#D2DAD7;text-wrap:pretty">{{ ps.next.desc }}</span>
+              </div>
+              <button onClick="{{ ps.next.go }}" style="flex:{{ btnFlex }};border:1px solid {{ ps.next.bd }};background:{{ ps.next.bg }};color:{{ ps.next.fg }};cursor:{{ ps.next.cur }};border-radius:8px;padding:0 20px;min-height:44px;font-size:14px;font-weight:600">{{ ps.next.label }}</button>
+            </div>
+            <sc-for list="{{ ps.more }}" as="a" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid #1D282C">
+                <button onClick="{{ a.go }}" style="flex:none;width:{{ moreW }};border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};cursor:{{ a.cur }};border-radius:8px;padding:4px 12px;min-height:40px;font-size:13px;font-weight:500;line-height:1.25">{{ a.label }}</button>
+                <span style="font-size:12px;color:{{ a.hintC }};text-wrap:pretty;min-width:0">{{ a.hint }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ ps.hasFoot }}"><span style="font-size:12px;color:#949E9C;text-wrap:pretty">{{ ps.foot }}</span></sc-if>
+        </div>
+      </sc-if>
+    </section>
+
+    <aside style="flex:1 1 300px;max-width:{{ ticketMax }};min-width:0;background:#0F1A1F;border:1px solid #273035;border-radius:12px;padding:{{ tPad }};display:flex;flex-direction:column;gap:{{ tGap }}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <h2 style="margin:0;font-size:16px;font-weight:600">Pair ticket</h2>
+        <span style="margin-left:auto;font-size:12px;color:#949E9C">{{ ticketTag }}</span>
+      </div>
+
+      <sc-if value="{{ ticketLocked }}">
+        <div style="font-size:13px;color:#D2DAD7;padding:12px;border-radius:8px;background:#0A1519;border:1px solid #273035;text-wrap:pretty">One active pair per account. Close or resolve the current pair before opening another.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ lockedRows }}" as="r">
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px"><span style="color:#949E9C">{{ r.k }}</span><span style="font-family:'Geist Mono',monospace">{{ r.v }}</span></div>
+          </sc-for>
+        </div>
+        <button disabled="{{ true }}" style="border:1px solid #273035;background:#16232A;color:#5E6A68;border-radius:8px;min-height:44px;font-size:14px;font-weight:600;cursor:not-allowed">Preview pair</button>
+      </sc-if>
+
+      <sc-if value="{{ ticketForm }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:12px;color:#949E9C">Legs · fixed in MVP</span>
+          <sc-for list="{{ exampleLegs }}" as="x">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #273035;border-radius:8px;background:#0A1519">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:3px 7px;border-radius:4px;color:{{ x.t.fg }};background:{{ x.t.bg }}">{{ x.side }}</span>
+              <span style="font-weight:500">{{ x.market }}</span>
+              <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:#949E9C">≈ 50%</span>
+            </div>
+          </sc-for>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:#949E9C">Total notional</span>
+          <div style="display:flex;align-items:center;border:1px solid {{ notionalBd }};border-radius:8px;background:#071116;opacity:{{ formOpacity }}">
+            <input value="{{ notional }}" onChange="{{ onNotional }}" disabled="{{ formDisabled }}" inputmode="decimal" style="flex:1;min-width:0;background:transparent;border:0;color:#F6FEFD;font-family:'Geist Mono',monospace;font-size:18px;padding:10px 12px;outline:none">
+            <span style="padding:0 12px;font-size:13px;color:#949E9C">USDso</span>
+          </div>
+          <span style="font-size:12px;color:{{ notionalHintC }};text-wrap:pretty">{{ notionalHint }}</span>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:#949E9C">Slippage tolerance</span>
+          <div style="display:flex;align-items:center;border:1px solid #34424A;border-radius:8px;background:#071116;opacity:{{ formOpacity }}">
+            <input value="{{ slip }}" onChange="{{ onSlip }}" disabled="{{ formDisabled }}" inputmode="numeric" style="flex:1;min-width:0;background:transparent;border:0;color:#F6FEFD;font-family:'Geist Mono',monospace;font-size:16px;padding:9px 12px;outline:none">
+            <span style="padding:0 12px;font-size:13px;color:#949E9C">bps = {{ slipPct }}</span>
+          </div>
+          <span style="font-size:12px;color:#949E9C">Range 1–100 bps. Sets the price limit on each order.</span>
+        </label>
+        <sc-if value="{{ showScenario }}">
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:12px;color:#949E9C">Simulated outcome</span>
+            <select value="{{ scenario }}" onChange="{{ onScenario }}" disabled="{{ formDisabled }}" style="background:#071116;border:1px solid #34424A;border-radius:8px;color:#F6FEFD;font-size:14px;padding:0 12px;min-height:44px;opacity:{{ formOpacity }}">
+              <option value="ok">Both legs fill</option>
+              <option value="partial">BTC leg partially fills</option>
+              <option value="unknown">BTC receipt never arrives</option>
+            </select>
+            <span style="font-size:12px;color:#949E9C;text-wrap:pretty">Local fault scenario at fixed prices. Not a prediction of on-chain results.</span>
+          </label>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;border-top:1px solid #1D282C">
+          <sc-for list="{{ ticketFacts }}" as="r">
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;padding-top:4px"><span style="color:#949E9C">{{ r.k }}</span><span style="text-align:right;color:{{ r.c }}">{{ r.v }}</span></div>
+          </sc-for>
+        </div>
+        <button onClick="{{ ticketCta.go }}" style="border:1px solid {{ ticketCta.bd }};background:{{ ticketCta.bg }};color:{{ ticketCta.fg }};cursor:{{ ticketCta.cur }};border-radius:8px;min-height:44px;font-size:14px;font-weight:600">{{ ticketCta.label }}</button>
+        <span style="font-size:12px;color:#949E9C;text-align:center;margin-top:-8px">{{ ticketCtaHint }}</span>
+      </sc-if>
+    </aside>
+  </div>
+
+  <section style="order:2;background:#0F1A1F;border:1px solid #273035;border-radius:12px">
+    <div style="display:flex;align-items:center;gap:12px;padding:0 16px 0 4px">
+      <button onClick="{{ toggleJournal }}" aria-expanded="{{ jOpen }}" style="background:none;border:0;color:#F6FEFD;font-size:14px;font-weight:500;cursor:pointer;min-height:48px;padding:0 12px;display:flex;align-items:center;gap:8px"><span style="font-family:'Geist Mono',monospace;color:#949E9C;width:10px">{{ jGlyph }}</span>Execution journal</button>
+      <span style="font-size:12px;color:#949E9C">{{ jCount }}</span>
+      <sc-if value="{{ hasJournal }}"><button onClick="{{ exportReceipt }}" style="margin-left:auto;border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Export receipt JSON</button></sc-if>
+    </div>
+    <sc-if value="{{ jOpen }}">
+      <div style="border-top:1px solid #273035;padding:8px 0;font-family:'Geist Mono',monospace;font-size:12px;overflow-x:auto">
+        <sc-for list="{{ journal }}" as="j">
+          <div style="display:flex;gap:16px;padding:5px 16px;white-space:nowrap"><span style="color:#5E6A68">{{ j.t }}</span><span style="color:{{ j.c }};min-width:180px">{{ j.e }}</span><span style="color:#949E9C">{{ j.d }}</span></div>
+        </sc-for>
+        <sc-if value="{{ noJournal }}"><div style="padding:5px 16px;color:#5E6A68">No operations yet.</div></sc-if>
+      </div>
+    </sc-if>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isActivity }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Activity</h1>
+      <span style="font-size:13px;color:#949E9C;text-wrap:pretty">{{ actScope }}</span>
+    </div>
+    <div style="margin-left:auto;display:flex;padding:3px;border:1px solid #273035;border-radius:8px;gap:2px;flex-wrap:wrap">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+        <button onClick="{{ f.go }}" style="border:0;border-radius:6px;padding:7px 12px;min-height:36px;font-size:13px;font-weight:500;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#949E9C;padding:10px 14px;border:1px dashed #34424A;border-radius:8px;text-wrap:pretty">History in this browser only. It is not the full wallet history, and the CLI journal is kept separately.</div>
+
+  <sc-if value="{{ actEmpty }}">
+    <div style="background:#0F1A1F;border:1px solid #273035;border-radius:12px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+      <span style="font-size:15px;color:#D2DAD7;max-width:360px;text-wrap:pretty">No pair activity in this browser yet. Create a simulated pair to explore the workflow.</span>
+      <button onClick="{{ toSimTrade }}" style="border:1px solid #1F5FFF;background:linear-gradient(135deg,#3D8BFF 0%,#004CFF 100%);color:#FFFFFF;border-radius:8px;padding:0 18px;min-height:44px;font-size:14px;font-weight:600;cursor:pointer">Open Trade in Simulation</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ actHas }}">
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <div style="flex:1 1 380px;min-width:0;background:#0F1A1F;border:1px solid #273035;border-radius:12px;overflow:hidden">
+        <sc-for list="{{ actRows }}" as="r" hint-placeholder-count="3">
+          <button onClick="{{ r.go }}" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px;min-height:64px;border:0;border-bottom:1px solid #1D282C;background:{{ r.bg }};color:#F6FEFD;cursor:pointer">
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">
+              <span style="font-weight:500">Long ETH / Short BTC</span>
+              <span style="font-size:12px;color:#949E9C">{{ r.date }} · <span style="font-family:'Geist Mono',monospace">{{ r.id }}</span> · {{ r.ops }}</span>
+            </div>
+            <span style="flex:none;white-space:nowrap;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;color:{{ r.t.fg }};background:{{ r.t.bg }}">{{ r.status }}</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ actFilteredEmpty }}"><div style="padding:24px 16px;font-size:13px;color:#949E9C">No pairs match this filter.</div></sc-if>
+      </div>
+
+      <div style="flex:1.4 1 440px;min-width:0;background:#0F1A1F;border:1px solid #273035;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+          <span style="font-size:13px;color:#949E9C">Pair <span style="font-family:'Geist Mono',monospace;color:#D2DAD7">{{ sel.id }}</span> · {{ sel.date }}</span>
+          <span style="margin-left:auto;flex:none;white-space:nowrap;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;color:{{ sel.t.fg }};background:{{ sel.t.bg }}">{{ sel.status }}</span>
+        </div>
+        <div style="border:1px solid #273035;border-radius:10px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr));gap:8px;padding:8px 14px;font-size:12px;color:#949E9C;background:#0A1519;border-bottom:1px solid #1D282C"><span>Leg</span><span style="text-align:right">Requested</span><span style="text-align:right">Filled</span><span style="text-align:right">Open</span></div>
+          <sc-for list="{{ sel.legs }}" as="l">
+            <div style="display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr));gap:8px;padding:10px 14px;font-size:13px;border-bottom:1px solid #1D282C;align-items:center">
+              <span style="display:flex;gap:6px;align-items:center;min-width:0"><span style="font-size:10px;font-weight:600;letter-spacing:.06em;padding:2px 5px;border-radius:4px;color:{{ l.t.fg }};background:{{ l.t.bg }}">{{ l.side }}</span>{{ l.m }}</span>
+              <span style="text-align:right;font-family:'Geist Mono',monospace">{{ l.req }}</span><span style="text-align:right;font-family:'Geist Mono',monospace">{{ l.fill }}</span><span style="text-align:right;font-family:'Geist Mono',monospace">{{ l.open }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <span style="font-size:13px;font-weight:600;margin-bottom:10px">Timeline</span>
+          <sc-for list="{{ sel.events }}" as="e">
+            <div style="display:flex;gap:12px">
+              <div style="display:flex;flex-direction:column;align-items:center;width:10px"><span style="width:9px;height:9px;border-radius:50%;margin-top:5px;background:{{ e.c }}"></span><span style="flex:1;width:1px;background:#273035"></span></div>
+              <div style="display:flex;flex-direction:column;gap:1px;padding-bottom:14px;min-width:0">
+                <span style="font-size:13px">{{ e.e }}</span>
+                <span style="font-size:12px;color:#949E9C">{{ e.t }} · <span style="font-family:'Geist Mono',monospace">{{ e.d }}</span></span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <sc-if value="{{ sel.open }}"><button onClick="{{ toTradePartial }}" style="border:1px solid #1F5FFF;background:linear-gradient(135deg,#3D8BFF 0%,#004CFF 100%);color:#FFFFFF;border-radius:8px;padding:0 16px;min-height:44px;font-size:14px;font-weight:600;cursor:pointer">Resolve in Trade</button></sc-if>
+          <button onClick="{{ exportReceipt }}" style="border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:0 16px;min-height:44px;font-size:14px;font-weight:500;cursor:pointer">Export JSON</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isSetup }}">
+  <div style="display:flex;flex-direction:column;gap:4px;max-width:720px">
+    <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Setup</h1>
+    <span style="font-size:13px;color:#949E9C;text-wrap:pretty">Prepare your own account for testnet pairs. Simulation needs none of this.</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+    <div style="flex:1.3 1 460px;min-width:0;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <sc-for list="{{ paths }}" as="pa" hint-placeholder-count="2">
+          <div style="flex:1 1 220px;border:1px solid {{ pa.bd }};border-radius:12px;background:#0F1A1F;padding:16px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600">{{ pa.title }}</span><span style="margin-left:auto;font-size:11px;color:{{ pa.tagC }}">{{ pa.tag }}</span></div>
+            <span style="font-size:13px;color:#949E9C;text-wrap:pretty">{{ pa.body }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#0F1A1F;border:1px solid #273035;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+        <span style="font-weight:600">Steps</span>
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+          <div style="display:flex;gap:12px">
+            <span style="flex:none;width:24px;height:24px;border-radius:50%;border:1px solid #34424A;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'Geist Mono',monospace;color:#D2DAD7">{{ s.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+              <span style="font-weight:500">{{ s.title }}</span>
+              <span style="font-size:13px;color:#949E9C;text-wrap:pretty">{{ s.body }}</span>
+              <sc-if value="{{ s.hasLink }}"><a href="#" style="font-size:13px">{{ s.link }}</a></sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;color:#949E9C;padding:12px 14px;border:1px dashed #34424A;border-radius:8px;text-wrap:pretty">No private keys are entered on this website. CLI keys stay in a local file ignored by Git. “Link a Bot” is a separate integration path that v0 does not support.</div>
+    </div>
+    <div style="flex:1 1 300px;min-width:0;background:#0F1A1F;border:1px solid #273035;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center"><span style="font-weight:600">Account checks</span><button onClick="{{ refreshPrices }}" style="margin-left:auto;border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Refresh</button></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:#0A1519;border:1px solid #273035"><span style="font-family:'Geist Mono',monospace;font-size:13px">0x436d…c1F5</span><button style="margin-left:auto;border:0;background:none;color:#5B8CFF;font-size:12px;cursor:pointer">Copy</button></div>
+      <sc-for list="{{ checks }}" as="c" hint-placeholder-count="6">
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;padding-bottom:10px;border-bottom:1px solid #1D282C">
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span>{{ c.k }}</span><span style="font-size:12px;color:#949E9C;text-wrap:pretty">{{ c.d }}</span></div>
+          <span style="margin-left:auto;flex:none;font-size:12px;padding:2px 8px;border-radius:999px;color:{{ c.t.fg }};background:{{ c.t.bg }}">{{ c.v }}</span>
+        </div>
+      </sc-for>
+      <button onClick="{{ toTrade }}" style="border:1px solid #34424A;background:transparent;color:#F6FEFD;border-radius:8px;min-height:44px;font-size:14px;font-weight:500;cursor:pointer">Back to Trade</button>
+    </div>
+  </div>
+</sc-if>
+</main>
+
+<sc-if value="{{ isMobile }}">
+  <nav style="position:sticky;bottom:0;display:flex;border-top:1px solid #273035;background:#0F1A1F">
+    <sc-for list="{{ nav }}" as="n">
+      <button onClick="{{ n.go }}" style="flex:1;min-height:56px;border:0;border-top:2px solid {{ n.line }};background:none;color:{{ n.fg }};font-size:13px;font-weight:500;cursor:pointer">{{ n.label }}</button>
+    </sc-for>
+  </nav>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;page&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;trade&quot;,&quot;activity&quot;,&quot;setup&quot;],&quot;default&quot;:&quot;trade&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;new&quot;,&quot;preview&quot;,&quot;expiring&quot;,&quot;submitting&quot;,&quot;open&quot;,&quot;partial&quot;,&quot;unknown&quot;,&quot;closeReview&quot;,&quot;closeRemaining&quot;,&quot;recovery&quot;,&quot;closeResidual&quot;,&quot;dust&quot;,&quot;flat&quot;],&quot;default&quot;:&quot;new&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;simulation&quot;,&quot;testnet&quot;],&quot;default&quot;:&quot;testnet&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;journalOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;ack&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;activityEmpty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = {};
+  componentDidMount() {
+    if (!this.props.live) return;
+    this._onR = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', this._onR);
+    this._onR(); requestAnimationFrame(this._onR); setTimeout(this._onR, 300);
+    if (window.ResizeObserver) { this._ro = new ResizeObserver(this._onR); this._ro.observe(document.documentElement); }
+    this._iv = setInterval(() => { if (this._curSt === 'preview') this.forceUpdate(); }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this._iv); clearTimeout(this._to); if (this._onR) window.removeEventListener('resize', this._onR); if (this._ro) this._ro.disconnect(); }
+  componentDidUpdate() {
+    if (!this.props.live) return;
+    const st = this._curSt;
+    if (st !== this._lastSt) {
+      clearTimeout(this._to);
+      if (st === 'submitting') { const out = { ok:'open', partial:'partial', unknown:'unknown' }[this._curScen] || 'open'; this._to = setTimeout(() => this.setState({ st: out, reconAt: undefined }), this._curSim ? 1500 : 2600); }
+      this._lastSt = st;
+    }
+    if (this._curPage !== this._lastPage) { if (this._lastPage) window.scrollTo(0, 0); this._lastPage = this._curPage; }
+  }
+  renderVals() {
+    const p = this.props, s = this.state, set = o => this.setState(o);
+    const page = s.page ?? p.page ?? 'trade';
+    const st = s.st ?? p.state ?? 'new';
+    const mode = s.mode ?? p.mode ?? 'testnet';
+    const live = !!p.live;
+    const mobile = p.layout ? p.layout === 'mobile' : (live && (s.vw ?? window.innerWidth) < 720);
+    const sim = mode === 'simulation';
+    const go = n => set({ st: n, reconAt: undefined, ...(n === 'preview' ? { previewAt: Date.now() } : {}) });
+    const walletOn = s.walletOn ?? p.walletConnected ?? (live ? false : !sim);
+    const connect = () => set({ walletOn: true });
+    const scenario = s.scenario ?? 'ok';
+    this._curSt = st; this._curSim = sim; this._curPage = page; this._curScen = sim ? scenario : 'ok';
+    const nowStr = () => new Date().toISOString().slice(11, 19) + ' UTC';
+    let journalOut = [];
+    const exportReceipt = () => {
+      try {
+        const data = { pair:'7f3a…c21e', mode, network: sim ? 'local-simulator' : 'somnia-tokyo-50383', state: st, exportedAt: new Date().toISOString(), journal: journalOut.map(j => ({ time:j.t, event:j.e, detail:j.d })) };
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' })); a.download = 'pairpilot-receipt-7f3a-c21e.json'; a.click();
+      } catch (e) {}
+    };
+    const ack = s.ack ?? p.ack ?? false;
+    const jOpen = s.jOpen ?? p.journalOpen ?? false;
+    const filter = s.filter ?? 'all';
+    const T = { ok:['#5B8CFF','rgba(61,123,255,.10)'], info:['#5B8CFF','rgba(61,123,255,.12)'], warn:['#f5b342','rgba(245,179,66,.12)'], bad:['#ED7088','rgba(237,112,136,.12)'], mute:['#949E9C','rgba(148,158,156,.12)'], long:['#1FA67D','rgba(31,166,125,.13)'], short:['#ED7088','rgba(237,112,136,.13)'], sim:['#D2DAD7','rgba(210,218,215,.16)'], net:['#8DB0FF','rgba(61,123,255,.14)'] };
+    const tone = k => ({ fg: T[k][0], bg: T[k][1] });
+    const accent = '#4F86FF';
+    const btn = (label, kind, fn) => {
+      const k = { primary:{bg:'linear-gradient(135deg,#3D8BFF 0%,#004CFF 100%)',fg:'#FFFFFF',bd:'#1F5FFF'}, secondary:{bg:'transparent',fg:'#F6FEFD',bd:'#34424A'}, disabled:{bg:'#16232A',fg:'#5E6A68',bd:'#273035'} }[kind];
+      return { label, ...k, cur: kind === 'disabled' ? 'not-allowed' : 'pointer', go: kind === 'disabled' ? undefined : (fn || (() => {})) };
+    };
+    const kv = (k, v, c) => ({ k, v, c: c || '#F6FEFD' });
+    const bar = { done: accent, active: `repeating-linear-gradient(90deg,${accent} 0 5px,transparent 5px 9px)`, warn:'#f5b342', bad:'#ED7088', idle:'#273035' };
+    const steps = (ks, labels) => (labels || ['Wallet','Submitted','Confirmed','Filled']).map((label, i) => ({ label, bar: bar[ks[i]], fg: ks[i] === 'idle' ? '#5E6A68' : ks[i] === 'warn' ? '#f5b342' : ks[i] === 'bad' ? '#ED7088' : '#D2DAD7' }));
+    const leg = (side, o) => ({ side, market: side === 'LONG' ? 'ETH-PERP' : 'BTC-PERP', sideT: tone(side === 'LONG' ? 'long' : 'short'), st: tone(o.t), status: o.status, rows: o.rows, steps: o.steps || [], showSteps: !!o.steps, hasTx: !!o.tx && !sim, noTx: !o.tx || sim, tx: o.tx || '', txNote: sim ? 'Simulated fill · no transaction' : (o.txNote || ''), hasNote: !!o.note, note: o.note || '' });
+    const W = '#f5b342';
+    const longFilled = leg('LONG', { status:'Filled', t:'ok', tx:'0x9c1e…44ab', steps: steps(['done','done','done','done']), rows:[kv('Requested','0.0073 ETH'), kv('Filled','0.0073 ETH'), kv('Open now','0.0073 ETH'), kv('Avg fill','3,412.90')] });
+    const shortFilled = leg('SHORT', { status:'Filled', t:'ok', tx:'0x5b07…e19d', steps: steps(['done','done','done','done']), rows:[kv('Requested','0.00026 BTC'), kv('Filled','0.00026 BTC'), kv('Open now','0.00026 BTC'), kv('Avg fill','97,841.0')] });
+    const rcHint = 'Reconcile reads receipts and positions. Sends no orders.';
+    const closeHint = 'Close uses client-side checks, not contract-enforced reduce-only. External trades or liquidation can still change positions.';
+    const J = (t, e, d, c) => ({ t, e, d, c: c || '#D2DAD7' });
+    const J0 = [J('03:57:12','preview.created','ETH buy 0.0073 ≤3,423.29 · BTC sell 0.00026 ≥97,546.5 · ttl 60s'), J('03:57:38','leg1.signed','ETH-PERP buy · IOC'), J('03:57:39','leg1.submitted', sim ? 'simulated' : '0x9c1e…44ab'), J('03:57:41','leg1.confirmed','filled 0.0073 @ 3,412.90')];
+    const J1 = [J('03:57:47','leg2.signed','BTC-PERP sell · IOC'), J('03:57:49','leg2.submitted', sim ? 'simulated' : '0x5b07…e19d')];
+    const glyph = { warn:'!', info:'i', ok:'✓', bad:'!' };
+    const alert = (t, title, body) => ({ t: tone(t), bd: T[t][0] + '55', glyph: glyph[t], title, body });
+    const POST = {
+      submitting: { overall:'Executing', ot:'info', sub:'Order 2 of 2 · waiting for wallet', recon:'—', alert: alert('info','Confirm the BTC short in your wallet.','The ETH long is already open. If you reject this signature, it stays open without its hedge.'),
+        legs:[longFilled, leg('SHORT', { status:'Waiting for wallet', t:'info', txNote:'Not submitted yet', steps: steps(['active','idle','idle','idle']), rows:[kv('Requested','0.00026 BTC'), kv('Filled','—','#5E6A68'), kv('Open now','—','#5E6A68'), kv('Price limit','≥ 97,546.5')] })],
+        actions:[btn('Waiting for signature…','disabled'), btn('Reconcile','secondary')], notes:[rcHint], journal:[...J0, J('03:57:42','leg2.awaiting_wallet','BTC-PERP sell · IOC', '#5B8CFF')] },
+      open: { overall:'Pair open', ot:'info', sub:'Both legs filled and read back', recon:'03:58:12 UTC', alert:null, legs:[longFilled, shortFilled],
+        actions:[btn('Close pair','primary'), btn('Reconcile','secondary'), btn('Export receipt','secondary')], notes:[rcHint, closeHint],
+        journal:[...J0, ...J1, J('03:57:51','leg2.confirmed','filled 0.00026 @ 97,841.0'), J('03:58:12','positions.read','ETH +0.0073 · BTC −0.00026 · block 18,442,961')] },
+      partial: { overall:'Incomplete', ot:'warn', sub:'BTC short partially filled', recon:'03:58:02 UTC', alert: alert('warn','One or both legs are incomplete. Review the open quantities below.','BTC short filled 0.00014 of 0.00026. The rest was cancelled by IOC: no executable liquidity within your price limit.'),
+        legs:[longFilled, leg('SHORT', { status:'Partial fill', t:'warn', tx:'0x5b07…e19d', steps: steps(['done','done','done','warn'], ['Wallet','Submitted','Confirmed','Partial']), note:'Unfilled 0.00012 BTC was cancelled. PairPilot does not resend it.', rows:[kv('Requested','0.00026 BTC'), kv('Filled','0.00014 BTC', W), kv('Open now','0.00014 BTC', W), kv('Avg fill','97,839.5')] })],
+        actions:[btn('Close remaining exposure','primary'), btn('Reconcile','secondary'), btn('Export receipt','secondary')], notes:[rcHint, closeHint],
+        journal:[...J0, ...J1, J('03:57:51','leg2.confirmed','filled 0.00014 of 0.00026 · remainder cancelled', W), J('03:58:02','positions.read','ETH +0.0073 · BTC −0.00014')] },
+      unknown: { overall:'Outcome unknown', ot:'warn', sub:'New orders blocked until reconciled', recon:'03:57:41 UTC', alert: alert('warn','A transaction outcome is unknown. Reconcile before sending another order.','The BTC short was broadcast as 0x5b07…e19d, but no receipt was read within 60 s. Opening and closing are blocked for this account until it is reconciled.'),
+        legs:[longFilled, leg('SHORT', { status:'Outcome unknown', t:'warn', tx:'0x5b07…e19d', steps: steps(['done','done','warn','idle'], ['Wallet','Submitted','No receipt','Fill']), note:'Broadcast 03:57:49 UTC. If no hash had been saved, you would check the account nonce and history on the explorer instead.', rows:[kv('Requested','0.00026 BTC'), kv('Filled','Unknown', W), kv('Open now','Unknown', W), kv('Price limit','≥ 97,546.5')] })],
+        actions:[btn('Reconcile','primary'), btn('Close remaining exposure','disabled'), btn('Export receipt','secondary')], notes:[rcHint, 'There is no retry button: resending could open a duplicate BTC short.'],
+        journal:[...J0, ...J1, J('03:58:49','leg2.receipt_timeout','no receipt after 60s · writes locked', W)] },
+      recovery: { overall:'Residual exposure', ot:'warn', sub:'Close filled partially', recon:'03:59:30 UTC', alert: alert('warn','Closing may partially fill or fail. Remaining exposure stays open.','BTC close filled 0.00015 of 0.00026 within your limit. 0.00011 BTC short is still open.'),
+        legs:[leg('LONG', { status:'Closed', t:'mute', tx:'0x1d4a…b302', rows:[kv('Opened','0.0073 ETH'), kv('Close filled','0.0073 ETH'), kv('Open now','0 ETH'), kv('Read back','03:59:30')] }),
+              leg('SHORT', { status:'Residual', t:'warn', tx:'0x77e2…0c5f', note:'No more liquidity within the close limit at block 18,443,051.', rows:[kv('Opened','0.00026 BTC'), kv('Close filled','0.00015 BTC'), kv('Open now','0.00011 BTC', W), kv('Close limit','≤ 98,146.1')] })],
+        actions:[btn('Review new close','primary'), btn('Reconcile','secondary'), btn('Export receipt','secondary')], notes:['A new close order needs a fresh review of quantity and price limit.', closeHint],
+        journal:[...J0, ...J1, J('03:57:51','leg2.confirmed','filled 0.00026 @ 97,841.0'), J('03:59:21','close.submitted','ETH sell 0.0073 · BTC buy 0.00026'), J('03:59:28','close.confirmed','ETH 0.0073 · BTC 0.00015 of 0.00026', W), J('03:59:30','positions.read','ETH 0 · BTC −0.00011', W)] },
+      flat: { overall:'Flat', ot:'ok', sub:'Verified by read-back', recon:'04:01:07 UTC', alert: alert('ok','Both positions were read back as zero.','Read at block 18,443,120 · 04:01:07 UTC.'),
+        legs:[leg('LONG', { status:'Flat', t:'mute', tx:'0x1d4a…b302', rows:[kv('Opened','0.0073 ETH'), kv('Closed','0.0073 ETH'), kv('Open now','0 ETH'), kv('Read back','04:01:07')] }),
+              leg('SHORT', { status:'Flat', t:'mute', tx:'0x8a11…5d70', rows:[kv('Opened','0.00026 BTC'), kv('Closed','0.00026 BTC'), kv('Open now','0 BTC'), kv('Read back','04:01:07')] })],
+        actions:[btn('New pair','primary', () => go('new')), btn('Export receipt','secondary')], notes:[],
+        journal:[...J0, ...J1, J('03:57:51','leg2.confirmed','filled 0.00026 @ 97,841.0'), J('04:00:58','close.confirmed','ETH 0.0073 · BTC 0.00026'), J('04:01:07','positions.read','ETH 0 · BTC 0 · flat', '#5B8CFF')] },
+    };
+    // Sample values shaped like planner output (src/core/planner.ts). Swap for the real preview result.
+    const PLAN = { block:'18,442,907', requested:'50.00', rounded:'50.35', delta:'+0.35', alloc:'49.5% ETH / 50.5% BTC',
+      legs:[{ side:'LONG', m:'ETH-PERP', qty:'0.0073 ETH', px:'3,413.05', pxKind:'best ask', val:'24.91' }, { side:'SHORT', m:'BTC-PERP', qty:'0.00026 BTC', px:'97,840.0', pxKind:'best bid', val:'25.44' }] };
+    const reconcile = () => { if (st === 'unknown') go('open'); else if (st === 'dust') go('flat'); else set({ reconAt: nowStr() }); };
+    const more = (...xs) => xs.map(([label, kind, hint, warn, fn]) => ({ ...btn(label, kind, fn), hint, hintC: warn ? W : '#949E9C' }));
+    const RC = ['Reconcile','secondary','Read-only. Checks receipts and positions; sends no orders.', false, reconcile], EX = ['Export receipt','secondary','Download this pair’s journal and receipts as JSON.', false, exportReceipt];
+    POST.dust = { overall:'Below market minimum', ot:'warn', sub:'Residual cannot be closed by order', recon:'04:00:12 UTC',
+      alert: alert('warn','The remaining position is below the market minimum.','0.00003 BTC short is still open. BTC-PERP rejects orders under 0.00005 BTC, so PairPilot cannot close it. This pair is not flat.'),
+      legs:[leg('LONG',{ status:'Closed', t:'mute', tx:'0x1d4a…b302', rows:[kv('Opened','0.0073 ETH'), kv('Close filled','0.0073 ETH'), kv('Open now','0 ETH'), kv('Read back','04:00:12')] }),
+            leg('SHORT',{ status:'Dust · 0.00003', t:'warn', tx:'0x77e2…0c5f', note:'≈ 2.94 USDso at mark 97,846.2. Minimum order size 0.00005 BTC, from market config.', rows:[kv('Opened','0.00026 BTC'), kv('Close filled','0.00023 BTC'), kv('Open now','0.00003 BTC', W), kv('Market minimum','0.00005 BTC')] })],
+      journal:[...J0, ...J1, J('03:57:51','leg2.confirmed','filled 0.00026 @ 97,841.0'), J('03:59:58','close.confirmed','ETH 0.0073 · BTC 0.00023 of 0.00026', W), J('04:00:12','positions.read','ETH 0 · BTC −0.00003 · below min 0.00005', W)] };
+    const NEXT = {
+      submitting: { n: btn('Waiting for signature…','disabled'), desc:'Approve the BTC short in your wallet. PairPilot sends nothing else meanwhile.', more: more(RC, EX) },
+      open: { n: btn('Close pair','primary',() => go('closeReview')), desc:'Review a close for both legs: sell 0.0073 ETH, buy 0.00026 BTC. Nothing is signed until you confirm.', more: more(RC, EX), foot: closeHint },
+      partial: { n: btn('Close remaining exposure','primary',() => go('closeRemaining')), desc:'Review a close for what is open now: sell 0.0073 ETH, buy 0.00014 BTC.', more: more(RC, EX), foot: closeHint },
+      unknown: { n: btn('Reconcile','primary', reconcile), desc:'Read the BTC short receipt and both positions. Sends no orders.', more: more(['Close remaining exposure','disabled','Blocked until the unknown transaction is reconciled.',true], EX), foot:'There is no retry button: resending could open a duplicate BTC short.' },
+      recovery: { n: btn('Review new close','primary',() => go('closeResidual')), desc:'Review a new close for the 0.00011 BTC still open, at fresh prices.', more: more(RC, EX), foot: closeHint },
+      dust: { n: btn('Reconcile','primary', reconcile), desc:'Check how the venue handles positions under its minimum, resolve it there, then reconcile to read it again.', more: more(['Close residual','disabled','Below the 0.00005 BTC minimum. The order would be rejected.',true], EX) },
+      flat: { n: btn('New pair','primary',() => go('new')), desc:'Both positions read back as zero. You can open a new pair.', more: more(EX) },
+    };
+    const okc = (k, v) => ({ k, v, t: tone('ok') });
+    const cl = (side, o) => ({ side, market: side === 'LONG' ? 'ETH-PERP' : 'BTC-PERP', sideT: tone(side === 'LONG' ? 'long' : 'short'), ...o, act: o.none ? 'Nothing to close' : (side === 'LONG' ? 'Sell to close' : 'Buy to close'), actT: tone(o.none ? 'mute' : 'info'), hasRows: !o.none });
+    const ethClose = cl('LONG', { open:'0.0073 ETH', val:'≈ 24.91 USDso at best bid', rows:[kv('Close order','Sell 0.0073 ETH · IOC'), kv('Reference','Best bid 3,412.10'), kv('Price limit','≥ 3,401.86'), kv('Market minimum','0.0001 ETH')], checks:[okc('Position read back','0.0073 ETH'), okc('Close ≤ open quantity','OK'), okc('Above minimum size','OK')] });
+    const btcClose = q => cl('SHORT', { open: q + ' BTC', val:'≈ ' + ({ '0.00026':'25.44', '0.00014':'13.70', '0.00011':'10.76' })[q] + ' USDso at best ask', rows:[kv('Close order','Buy ' + q + ' BTC · IOC'), kv('Reference','Best ask 97,852.5'), kv('Price limit','≤ 98,146.1'), kv('Market minimum','0.00005 BTC')], checks:[okc('Position read back', q + ' BTC'), okc('Close ≤ open quantity','OK'), okc('Above minimum size','OK')] });
+    const CLOSE = {
+      closeReview: { title:'Review close', from:'open', to:'flat', legs:[ethClose, btcClose('0.00026')], seq:'Sell ETH, then buy BTC' },
+      closeRemaining: { title:'Review close of remaining exposure', from:'partial', to:'flat', legs:[ethClose, btcClose('0.00014')], seq:'Sell ETH, then buy BTC' },
+      closeResidual: { title:'Review new close', from:'recovery', to:'dust', legs:[cl('LONG', { none:true, open:'0 ETH', val:'Read back as zero', rows:[], checks:[] }), btcClose('0.00011')], seq:'Buy BTC only' },
+    };
+    const isClose = !!CLOSE[st];
+    const c0 = CLOSE[st] || CLOSE.closeReview;
+    const cr = { ...c0, cancel: () => go(c0.from), cta: btn(sim ? 'Execute simulated close' : 'Sign & close testnet pair', 'primary', () => go(c0.to)),
+      facts: [kv('Account', sim ? 'Simulator · no wallet' : '0x436d…c1F5'), kv('Network', sim ? 'Local simulator' : 'Somnia Tokyo · 50383'), kv('Slippage tolerance','30 bps = 0.30%'), kv('Order sequence', c0.seq)] };
+    const isNew = st === 'new', isReview = st === 'preview' || st === 'expiring', isPost = !!POST[st];
+    const ps0 = POST[st] || POST.open;
+    const nx = NEXT[st] || NEXT.open;
+    const ps = { ...ps0, recon: s.reconAt ?? ps0.recon, ot: tone(ps0.ot), hasAlert: !!ps0.alert, alert: ps0.alert || alert('info','',''), next: { ...nx.n, desc: nx.desc }, more: nx.more, foot: nx.foot || '', hasFoot: !!nx.foot };
+    const rem = live && st === 'preview' ? Math.max(0, 60 - Math.floor((Date.now() - (s.previewAt || Date.now())) / 1000)) : (st === 'expiring' ? 17 : 42);
+    const low = rem < 20;
+    const canSign = sim || ack;
+    const rv = {
+      timer: Math.floor(rem / 60) + ':' + String(rem % 60).padStart(2, '0'), pct: Math.round(rem / 60 * 100) + '%', low, timerT: tone(low ? 'warn' : 'mute'),
+      cta: low ? btn('Refresh preview','primary', () => go('preview')) : btn(sim ? 'Execute simulation' : 'Sign & open testnet pair', canSign ? 'primary' : 'disabled', () => go('submitting')),
+      legs: [
+        { side:'LONG', seq:'Order 1', market:'ETH-PERP', sideT: tone('long'), qty:'0.0073 ETH', notional:'≈ 24.91 USDso at best ask', rows:[kv('Price limit','≤ 3,423.29'), kv('Reference','Best ask 3,413.05 + 30 bps'), kv('Time in force','IOC · unfilled part cancels'), kv('Lot size','0.0001 ETH')], checks:[{k:'Mark price read',v:'OK',t:tone('ok')},{k:'Liquidity inside limit',v:'OK',t:tone('ok')},{k:'Above minimum size',v:'OK',t:tone('ok')}] },
+        { side:'SHORT', seq:'Order 2', market:'BTC-PERP', sideT: tone('short'), qty:'0.00026 BTC', notional:'≈ 25.44 USDso at best bid', rows:[kv('Price limit','≥ 97,546.5'), kv('Reference','Best bid 97,840.0 − 30 bps'), kv('Time in force','IOC · unfilled part cancels'), kv('Lot size','0.00001 BTC')], checks:[{k:'Mark price read',v:'OK',t:tone('ok')},{k:'Liquidity inside limit',v:'OK',t:tone('ok')},{k:'Above minimum size',v:'OK',t:tone('ok')}] },
+      ],
+      facts: [kv('Account', sim ? 'Simulator · no wallet' : '0x436d…c1F5 · browser wallet'), kv('Network', sim ? 'Local simulator' : 'Somnia Tokyo · chain 50383'), kv('Total notional','50.00 USDso · 50.35 after lot rounding'), kv('Allocation after rounding','49.5% ETH / 50.5% BTC'), kv('Execution','Sequential: ETH long, then BTC short'), kv('Perps margin', sim ? 'Not used in simulation' : 'Not checked')],
+    };
+    rv.basis = PLAN.legs.map(l => ({ ...l, t: tone(l.side === 'LONG' ? 'long' : 'short'), calc: l.qty + ' × ' + l.px }));
+    rv.basisNote = 'Each leg is valued at the snapshot price its order would cross: best ask for the long, best bid for the short (block ' + PLAN.block + '). Not mark price. Actual fills can differ within the price limit.';
+    rv.total = PLAN.rounded + ' USDso'; rv.totalSub = 'Requested ' + PLAN.requested + ' · ' + PLAN.delta + ' from lot rounding';
+    rv.facts = [kv('Account', sim ? 'Simulator · no wallet' : '0x436d…c1F5 · browser wallet'), kv('Network', sim ? 'Local simulator' : 'Somnia Tokyo · chain 50383'), kv('Allocation after rounding', PLAN.alloc), kv('Execution','Sequential: ETH long, then BTC short'), kv('Slippage tolerance','30 bps = 0.30%'), kv('Perps margin', sim ? 'Not used in simulation' : 'Not checked')];
+    const howOpen = s.how ?? !mobile;
+    const notional = s.notional ?? '50', slip = s.slip ?? '30';
+    const nNum = Number(notional), over = !sim && nNum > 200, bad = !(nNum > 0);
+    const slipN = Number(slip);
+    const ticketForm = isNew || st === 'flat' || isReview;
+    const formDisabled = isReview;
+    const nav = [['trade','Trade'],['activity','Activity'],['setup','Setup']].map(([k, label]) => ({ label, go: () => set({ page:k }), fg: page === k ? '#F6FEFD' : '#949E9C', line: page === k ? (mobile ? accent : '#F6FEFD') : 'transparent' }));
+    const modes = [['simulation','Simulation'],['testnet','Testnet']].map(([k, label]) => ({ label, go: () => set({ mode:k, st:'new', ack:false }), bg: mode === k ? (k === 'simulation' ? 'rgba(210,218,215,.18)' : 'rgba(61,123,255,.16)') : 'transparent', fg: mode === k ? (k === 'simulation' ? '#F6FEFD' : '#5B8CFF') : '#949E9C' }));
+    const ACT = [
+      { id:'7f3a…c21e', date:'Oct 22 · 03:57', status:'Incomplete', t:tone('warn'), ops:'3 operations', g:'active', open:true,
+        legs:[{side:'LONG',m:'ETH-PERP',t:tone('long'),req:'0.0073',fill:'0.0073',open:'0.0073'},{side:'SHORT',m:'BTC-PERP',t:tone('short'),req:'0.00026',fill:'0.00014',open:'0.00014'}],
+        events:[{e:'Preview created',t:'03:57:12',d:'ttl 60s',c:'#5E6A68'},{e:'ETH long filled',t:'03:57:41',d:'0x9c1e…44ab',c:accent},{e:'BTC short partially filled',t:'03:57:51',d:'0x5b07…e19d',c:W},{e:'Positions read back',t:'03:58:02',d:'ETH +0.0073 · BTC −0.00014',c:W}] },
+      { id:'b20d…91f4', date:'Oct 21 · 14:10', status:'Flat', t:tone('ok'), ops:'4 operations', g:'closed', open:false,
+        legs:[{side:'LONG',m:'ETH-PERP',t:tone('long'),req:'0.0073',fill:'0.0073',open:'0'},{side:'SHORT',m:'BTC-PERP',t:tone('short'),req:'0.00026',fill:'0.00026',open:'0'}],
+        events:[{e:'Both legs filled',t:'14:10:33',d:'0x2e90…a1c3, 0x6f14…09bd',c:accent},{e:'Close pair confirmed',t:'16:42:05',d:'0x3bb8…7e21',c:accent},{e:'Read back as flat',t:'16:42:11',d:'ETH 0 · BTC 0',c:'#5B8CFF'}] },
+      { id:'4c8e…07aa', date:'Oct 20 · 09:32', status:'Flat', t:tone('ok'), ops:'5 operations', g:'closed', open:false,
+        legs:[{side:'LONG',m:'ETH-PERP',t:tone('long'),req:'0.0074',fill:'0.0074',open:'0'},{side:'SHORT',m:'BTC-PERP',t:tone('short'),req:'0.00026',fill:'0',open:'0'}],
+        events:[{e:'ETH long filled',t:'09:32:18',d:'0x51c2…e8f0',c:accent},{e:'BTC short no fill',t:'09:32:27',d:'0x0ad7…44c9',c:W},{e:'Remaining exposure closed',t:'09:35:02',d:'0x9e3f…12ab',c:accent},{e:'Read back as flat',t:'09:35:09',d:'ETH 0 · BTC 0',c:'#5B8CFF'}] },
+    ];
+    const hasPair = isPost || isClose;
+    const src = isPost ? ps0 : POST[c0.from];
+    const curRow = hasPair ? { id:'7f3a…c21e', date:'Today · 03:57', status: isClose ? 'Closing' : src.overall, t: isClose ? tone('info') : ps.ot, ops: src.journal.length + ' operations', g: st === 'flat' ? 'closed' : 'active', open: st !== 'flat',
+      legs: src.legs.map(l => ({ side: l.side, m: l.market, t: l.sideT, req: l.rows[0].v, fill: l.rows[1].v, open: l.rows[2].v })), events: src.journal.map(j => ({ e: j.e, t: j.t, d: j.d, c: j.c })) } : null;
+    const ACTL = live ? (sim ? (curRow ? [curRow] : []) : (curRow ? [curRow, ...ACT.slice(1)] : ACT.slice(1))) : ACT;
+    const actRows0 = ACTL.filter(r => filter === 'all' || r.g === filter);
+    const selId = s.sel ?? (ACTL[0] || ACT[0]).id;
+    const sel = ACTL.find(r => r.id === selId) || ACTL[0] || ACT[0];
+    const actEmpty = !!p.activityEmpty || (live ? ACTL.length === 0 : sim);
+    const unchecked = tone('mute');
+    return {
+      isDesktop: !mobile, isMobile: mobile, pad: mobile ? '12px' : '24px', wsPad: mobile ? '14px' : '24px', wsGap: mobile ? '14px' : '18px', wsGapL: mobile ? '18px' : '24px', legPad: mobile ? '12px' : '16px', tPad: mobile ? '14px' : '20px', tGap: mobile ? '14px' : '18px', titleSize: mobile ? '20px' : '24px', btnFlex: mobile ? '1 1 100%' : 'none', moreW: mobile ? '128px' : '176px', ticketMax: mobile ? '100%' : '380px',
+      nav, modes, connected: walletOn, disconnected: !walletOn,
+      bannerBg: sim ? 'repeating-linear-gradient(135deg,rgba(210,218,215,.09) 0 8px,rgba(210,218,215,.03) 8px 16px)' : 'rgba(61,123,255,.05)',
+      bannerBd: sim ? 'rgba(210,218,215,.28)' : 'rgba(61,123,255,.18)',
+      modeT: tone(sim ? 'sim' : 'net'), modeLabel: sim ? 'SIMULATION' : 'TESTNET',
+      modeCopy: sim ? 'Simulated prices and fills. No real orders.' : 'Signs real orders on Somnia Tokyo testnet.',
+      isTrade: page === 'trade', isActivity: page === 'activity', isSetup: page === 'setup',
+      mktOrder: mobile && (isPost) ? 3 : 0,
+      markets: [{ name:'ETH-PERP', mark:'3,412.58', bid:'3,412.10', ask:'3,413.05', funding:'+0.0042%' }, { name:'BTC-PERP', mark:'97,846.2', bid:'97,840.0', ask:'97,852.5', funding:'+0.0031%' }],
+      snapT: tone(sim ? 'sim' : 'mute'), snapLabel: sim ? 'SIMULATED PRICES' : 'SNAPSHOT',
+      snapMeta: sim ? 'Not live market data' : 'Read ' + (s.snapAt ?? '03:56:05 UTC') + ' · block 18,442,907',
+      isNew, isReview, isPost, isClose, cr, rv, ps, ack, showAck: !sim,
+      howOpen, howGlyph: howOpen ? '−' : '+', toggleHow: () => set({ how: !howOpen }),
+      snapMetaShort: sim ? 'Not live market data' : (s.snapAt ?? '03:56:05 UTC') + ' · block 18,442,907',
+      refreshPrices: () => set({ snapAt: nowStr() }), exportReceipt, connect, minH: live ? '100vh' : '100%',
+      copyLabel: s.copied ? 'Copied' : 'Copy', copyAddr: () => { try { navigator.clipboard.writeText('0x436d…c1F5'); } catch (e) {} set({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1500); },
+      showHelp: e => { if (e) e.preventDefault(); set({ page:'trade', how: true }); },
+      showScenario: sim, scenario, onScenario: e => set({ scenario: e.target.value }),
+      toggleAck: () => set({ ack: !ack }), toEdit: () => go('new'),
+      exampleLegs: [
+        { side:'LONG', market:'ETH-PERP', t: tone('long'), seq:'Order 1', desc:'Buys about half the notional with an IOC price limit.' },
+        { side:'SHORT', market:'BTC-PERP', t: tone('short'), seq:'Order 2', desc:'Sells the other half after order 1 settles. It can fill differently.' },
+      ],
+      how: [
+        { n:'1', title:'Review', body:'Check both legs, quantities and price limits. Nothing is signed.' },
+        { n:'2', title:'Execute', body:'Two IOC orders are sent one after another. One can fill without the other.' },
+        { n:'3', title:'Reconcile & close', body:'Read back actual fills and positions, then close what is still open.' },
+      ],
+      ticketLocked: !ticketForm, ticketForm, formDisabled, formOpacity: formDisabled ? 0.6 : 1,
+      ticketTag: isReview ? 'Locked while reviewing' : ticketForm ? 'Long ETH / Short BTC' : 'Pair active',
+      lockedRows: [kv('Long','ETH-PERP · 0.0073'), kv('Short','BTC-PERP · 0.00026'), kv('Total notional','50.00 USDso'), kv('Slippage','30 bps')],
+      notional, slip, slipPct: isFinite(slipN) ? (slipN / 100).toFixed(2) + '%' : '—',
+      onNotional: e => set({ notional: e.target.value }), onSlip: e => set({ slip: e.target.value }),
+      notionalBd: over || bad ? '#ED7088' : '#34424A',
+      notionalHint: over ? 'Testnet limit is 200 USDso total notional.' : 'Total position value across both legs, not collateral.' + (sim ? '' : ' Testnet max 200 USDso.'),
+      notionalHintC: over || bad ? '#ED7088' : '#949E9C',
+      ticketFacts: [kv('Execution','IOC with price limit · sequential'), kv('Recovery','Explicit unwind · you start it'), kv('Perps margin', sim ? 'Not used' : 'Not checked', '#949E9C')],
+      ticketCta: isReview ? btn('Edit ticket','secondary', () => go('new')) : (!sim && !walletOn) ? btn('Connect wallet','primary', connect) : btn('Preview pair', over || bad ? 'disabled' : 'primary', () => go('preview')),
+      ticketCtaHint: isReview ? 'Inputs stay fixed until you edit' : (!sim && !walletOn) ? 'Opening is blocked until a wallet is connected.' : 'Preview does not sign anything',
+      jOpen, jGlyph: jOpen ? '−' : '+', toggleJournal: () => set({ jOpen: !jOpen }),
+      journal: journalOut = isClose ? [...POST[c0.from].journal, J('03:58:40','close.preview.created','sized from read-back · ttl 60s')] : isPost ? ps0.journal : isReview ? [J('03:57:12','preview.created','ETH buy 0.0073 ≤3,423.29 · BTC sell 0.00026 ≥97,546.5 · ttl 60s')] : [],
+      get jCount() { return this.journal.length ? this.journal.length + ' events' : 'Empty'; },
+      get hasJournal() { return this.journal.length > 0; }, get noJournal() { return this.journal.length === 0; },
+      actScope: sim ? 'Simulation · this browser' : 'Testnet · 0x436d…c1F5 · this browser',
+      actEmpty, actHas: !actEmpty,
+      filters: [['all','All'],['active','Active or unresolved'],['closed','Closed']].map(([k, label]) => ({ label, go: () => set({ filter:k }), bg: filter === k ? '#0F1F3F' : 'transparent', fg: filter === k ? '#F6FEFD' : '#949E9C' })),
+      actRows: actRows0.map(r => ({ ...r, go: () => set({ sel: r.id }), bg: r.id === sel.id ? '#0F1F3F' : 'transparent' })),
+      actFilteredEmpty: actRows0.length === 0, sel,
+      toSimTrade: () => set({ page:'trade', mode:'simulation', st:'new' }),
+      toTradePartial: () => set({ page:'trade', st: live && hasPair ? st : 'partial' }), toTrade: () => set({ page:'trade' }),
+      paths: [
+        { title:'Browser wallet', tag:'Used by this website', tagC:'#5B8CFF', bd:'rgba(61,123,255,.35)', body:'Sign each order in your own wallet. PairPilot never holds keys.' },
+        { title:'Local CLI', tag:'Separate journal', tagC:'#949E9C', bd:'#273035', body:'Run PairPilot from your machine with a key file that stays local.' },
+      ],
+      steps: [
+        { n:'1', title:'Switch to Somnia Tokyo (chain 50383)', body:'Add the network from the official docs, then switch to it in your wallet.', hasLink:true, link:'Perps on Testnet docs ↗' },
+        { n:'2', title:'Get STT for gas', body:'Orders and closes are on-chain transactions on Tokyo.', hasLink:false, link:'' },
+        { n:'3', title:'Fund your Perps account with paper USDso', body:'Check voucher eligibility and claim through the dreamDEX testnet app.', hasLink:true, link:'Open dreamDEX testnet ↗' },
+        { n:'4', title:'Start from an empty account', body:'Close other positions and cancel resting orders so fills can be attributed to this pair.', hasLink:false, link:'' },
+      ],
+      checks: [
+        { k:'Network', d:'Chain 50383 required', v: walletOn ? 'Matched' : 'Not checked', t: walletOn ? tone('ok') : unchecked },
+        { k:'Wallet', d:'Browser wallet connection', v: walletOn ? 'Connected' : 'Not connected', t: walletOn ? tone('ok') : unchecked },
+        { k:'STT gas', d:'Not read by this UI yet', v:'Not checked', t:unchecked },
+        { k:'Perps margin', d:'Paper USDso in Perps account', v:'Not checked', t:unchecked },
+        { k:'Positions & resting orders', d:'Should be empty before the first pair', v:'Not checked', t:unchecked },
+        { k:'Pending stops', d:'Depends on the venue indexer', v:'Not checked', t:unchecked },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><style>body{margin:0;background:#e9e7e2;font-family:system-ui,sans-serif}a{color:#2a78d6}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-group{font:600 12px/1.2 system-ui,sans-serif;color:rgba(0,0,0,.6);margin:32px 0 14px;text-transform:uppercase;letter-spacing:.06em}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#0b0e11;border:1px solid rgba(0,0,0,.12);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:28px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}.dv-notes{max-width:760px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.7);margin:0 0 8px;padding-left:18px}</style></helmet>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Action controls, close review, residual below minimum, price basis, denser mobile · same structure and colors as turn 1</span></div>
+<ul class="dv-notes">
+<li><a href="PairPilot.dc.html">Open the wired website →</a> One live app: Simulation by default, connect wallet for Testnet, preview countdown, simulated outcomes, reconcile, close flows, Activity and Setup.</li>
+<li>Actions are now a “Next step” panel: one primary action stating what it will do, then secondary actions with their own hint. Disabled actions say why.</li>
+<li>Review shows how 50.00 becomes 50.35: each leg is qty × the snapshot price its order would cross (best ask for the long, best bid for the short) at a stated block. Not mark price.</li>
+<li>New close review sized from read-back positions, and a residual-below-minimum state. Numbers are sample values shaped like planner output (one PLAN object in the code); wire them to planner/engine results when implementing.</li>
+</ul>
+<div class="dv-group">Desktop 1280</div>
+<div class="dv-opts">
+<div class="dv-opt" id="2a"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Review · price basis for rounded notional</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="preview" mode="testnet" ack="{{ true }}" hint-size="1280px,1300px"></dc-import></div></div>
+<div class="dv-opt" id="2b"><div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Pair open · next-step panel</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="open" mode="testnet" hint-size="1280px,950px"></dc-import></div></div>
+<div class="dv-opt" id="2c"><div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Close review · both legs</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="closeReview" mode="testnet" hint-size="1280px,1000px"></dc-import></div></div>
+<div class="dv-opt" id="2d"><div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Close review · remaining exposure after partial fill</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="closeRemaining" mode="testnet" hint-size="1280px,1000px"></dc-import></div></div>
+<div class="dv-opt" id="2e"><div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Outcome unknown · disabled action with reason</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="unknown" mode="testnet" hint-size="1280px,950px"></dc-import></div></div>
+<div class="dv-opt" id="2f"><div class="dv-olabel"><a class="dv-oid" href="#2f">2f</a>Close review · residual only</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="closeResidual" mode="testnet" hint-size="1280px,1000px"></dc-import></div></div>
+<div class="dv-opt" id="2g"><div class="dv-olabel"><a class="dv-oid" href="#2g">2g</a>Residual below market minimum</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotApp" state="dust" mode="testnet" journal-open="{{ true }}" hint-size="1280px,1100px"></dc-import></div></div>
+</div>
+<div class="dv-group">Mobile 375 · denser</div>
+<div class="dv-opts">
+<div class="dv-opt" id="2h"><div class="dv-olabel"><a class="dv-oid" href="#2h">2h</a>New visitor · How it works collapsed</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotApp" layout="mobile" state="new" mode="simulation" hint-size="375px,1300px"></dc-import></div></div>
+<div class="dv-opt" id="2i"><div class="dv-olabel"><a class="dv-oid" href="#2i">2i</a>Review</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotApp" layout="mobile" state="preview" mode="testnet" hint-size="375px,2100px"></dc-import></div></div>
+<div class="dv-opt" id="2j"><div class="dv-olabel"><a class="dv-oid" href="#2j">2j</a>Partial fill</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotApp" layout="mobile" state="partial" mode="testnet" hint-size="375px,1700px"></dc-import></div></div>
+<div class="dv-opt" id="2k"><div class="dv-olabel"><a class="dv-oid" href="#2k">2k</a>Close review · remaining exposure</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotApp" layout="mobile" state="closeRemaining" mode="testnet" hint-size="375px,1800px"></dc-import></div></div>
+<div class="dv-opt" id="2l"><div class="dv-olabel"><a class="dv-oid" href="#2l">2l</a>Residual below minimum</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotApp" layout="mobile" state="dust" mode="testnet" hint-size="375px,1700px"></dc-import></div></div>
+</div>
+<p class="dv-next">Try next: "sticky primary action on mobile for <a class="dv-oid" href="#2j">2j</a>" · "add wrong-network and disconnected testnet states" · "editable slippage inside close review <a class="dv-oid" href="#2c">2c</a>"</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">PairPilot — Trade, Activity, Setup · all key states</span></div>
+<ul class="dv-notes">
+<li>Surfaces, text and long/short colors follow Hyperliquid (#0F1A1F, #273035, #F6FEFD / #949E9C, long #1FA67D, short #ED7088). The accent comes from the PairPilot logo: blue gradient #3D8BFF → #004CFF on primary actions, #5B8CFF for links and active states. Amber only for warnings. Simulation is a neutral hatched strip, Testnet is blue; both always carry a text label.</li>
+<li>Review is inline in the workspace (one consistent pattern); the ticket locks while reviewing and while a pair is active.</li>
+<li>All numbers are illustrative sample values. No PnL, charts, balances or stats. Unread checks show “Not checked”.</li>
+<li>Every artboard is the same live component: buttons work (Preview → Review → Sign, mode switch, nav, journal toggle, Activity filters).</li>
+</ul>
+
+<div class="dv-group">Trade · desktop 1280</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>New visitor · Simulation, no wallet</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="new" mode="simulation" hint-size="1280px,860px"></dc-import></div></div>
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Review · Testnet, acknowledged</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="preview" mode="testnet" ack="{{ true }}" hint-size="1280px,1100px"></dc-import></div></div>
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Review · headroom under 20 s</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="expiring" mode="testnet" ack="{{ true }}" hint-size="1280px,1100px"></dc-import></div></div>
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Executing · leg 2 waiting for wallet</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="submitting" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Pair open · verified</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="open" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1f"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Partial fill</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="partial" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1g"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Outcome unknown · journal open</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="unknown" mode="testnet" journal-open="{{ true }}" hint-size="1280px,1100px"></dc-import></div></div>
+<div class="dv-opt" id="1h"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Recovery incomplete · residual</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="recovery" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1i"><div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Verified flat</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="flat" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1j"><div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Pair open · Simulation (no tx hashes)</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" state="open" mode="simulation" hint-size="1280px,900px"></dc-import></div></div>
+</div>
+
+<div class="dv-group">Trade · mobile 375</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1k"><div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>New visitor</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" layout="mobile" state="new" mode="simulation" hint-size="375px,1600px"></dc-import></div></div>
+<div class="dv-opt" id="1l"><div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Review · not yet acknowledged</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" layout="mobile" state="preview" mode="testnet" hint-size="375px,2000px"></dc-import></div></div>
+<div class="dv-opt" id="1m"><div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Partial fill · status first</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" layout="mobile" state="partial" mode="testnet" hint-size="375px,1800px"></dc-import></div></div>
+<div class="dv-opt" id="1n"><div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Outcome unknown</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" layout="mobile" state="unknown" mode="testnet" hint-size="375px,1800px"></dc-import></div></div>
+</div>
+
+<div class="dv-group">Activity &amp; Setup</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1o"><div class="dv-olabel"><a class="dv-oid" href="#1o">1o</a>Activity · desktop</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" page="activity" mode="testnet" hint-size="1280px,760px"></dc-import></div></div>
+<div class="dv-opt" id="1p"><div class="dv-olabel"><a class="dv-oid" href="#1p">1p</a>Activity · empty, mobile</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" page="activity" layout="mobile" mode="testnet" activity-empty="{{ true }}" hint-size="375px,700px"></dc-import></div></div>
+<div class="dv-opt" id="1q"><div class="dv-olabel"><a class="dv-oid" href="#1q">1q</a>Setup · desktop</div><div class="dv-card" style="width:1280px"><dc-import name="PairPilotAppV1" page="setup" mode="testnet" hint-size="1280px,900px"></dc-import></div></div>
+<div class="dv-opt" id="1r"><div class="dv-olabel"><a class="dv-oid" href="#1r">1r</a>Setup · mobile</div><div class="dv-card" style="width:375px"><dc-import name="PairPilotAppV1" page="setup" layout="mobile" mode="testnet" hint-size="375px,1700px"></dc-import></div></div>
+</div>
+<p class="dv-next">Try next: "explore 2–3 alternative visual directions for <a class="dv-oid" href="#1e">1e</a>" · "add wrong-network and disconnected testnet states" · "design the Close pair review step"</p>
+</section>
+</x-dc>
+</body>
+</html>

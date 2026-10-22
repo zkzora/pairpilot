@@ -1,0 +1,28 @@
+{
+  "mode": "testnet",
+  "kind": "read-only preflight",
+  "checkedAt": "2026-10-22T09:59:32.676Z",
+  "chainId": 50383,
+  "execution": {
+    "mode": "own",
+    "owner": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+    "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50"
+  },
+  "signerGasSTT": "4.944731552",
+  "ownerEquityUSDso": "0",
+  "ownerActivePerpPools": 0,
+  "ownerRestingOrders": 0,
+  "ownerPendingStops": 0,
+  "ownerPositions": [
+    {
+      "symbol": "ETH",
+      "size": "0"
+    },
+    {
+      "symbol": "BTC",
+      "size": "0"
+    }
+  ],
+  "permissions": "own wallet: no operator grant needed",
+  "signedTransactions": 0
+}

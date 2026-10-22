@@ -1,0 +1,28 @@
+{
+  "attempts": [
+    {
+      "mode": "testnet",
+      "chainId": 50383,
+      "account": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+      "distributor": "0x2ACD9EFdA721450906bfE1bef3edE269636E42C4",
+      "at": "2026-10-22T06:44:58.000Z",
+      "outcome": "reverted",
+      "signedTransactions": 1,
+      "hash": "0x83401fae8899cfe109e6cc846dd3e158733f353bc9b47a372fd5c77e8e6e6d3f",
+      "block": "29995018",
+      "revertData": "0x3e31dcc2",
+      "message": "Sent by the previous wallet:claim (SDK claimPerpVoucher). The SDK threw ContractRevertError without printing the hash; this record was recovered read-only from block 29995018 (sender nonce 0, input 0x4e71d92d claim(), status reverted, gasUsed 22781). Explorer shows Failed: https://explorer.testnet.somnia.network/tokyo/tx/0x83401fae8899cfe109e6cc846dd3e158733f353bc9b47a372fd5c77e8e6e6d3f"
+    },
+    {
+      "mode": "testnet",
+      "chainId": 50383,
+      "account": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+      "distributor": "0x2ACD9EFdA721450906bfE1bef3edE269636E42C4",
+      "at": "2026-10-22T06:54:23.106Z",
+      "outcome": "simulation-reverted",
+      "signedTransactions": 0,
+      "revertData": "0x3e31dcc2",
+      "message": "Execution reverted for an unknown reason."
+    }
+  ]
+}
