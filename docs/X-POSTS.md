@@ -1,6 +1,6 @@
 # X post drafts (not published)
 
-Drafts for the user to review and post. Each claim maps to a proof file in the repository. Replace `<repo>` with the published repository URL before posting. Nothing here has been posted.
+Drafts for the user to review and post. Each claim maps to a proof file in the repository. Nothing here has been posted.
 
 ---
 
@@ -12,7 +12,7 @@ PairPilot puts both legs on one ticket on @DreamDEXSomnia testnet: bounded IOC o
 
 ETH · BTC · SOL · HYPE, six pairs, both directions.
 
-<repo>
+https://github.com/zkzora/pairpilot
 
 Evidence: README "Live testnet proof" table.
 
@@ -27,7 +27,7 @@ Five live runs on @DreamDEXSomnia Tokyo testnet today, each re-checked from chai
 • HYPE/SOL from the CLI
 • a HYPE/ETH recovery (below)
 
-Every transaction is linked: <repo>#live-testnet-proof-somnia-tokyo-chain-50383-2026-10-22
+Every transaction is linked: https://github.com/zkzora/pairpilot#live-testnet-proof-somnia-tokyo-chain-50383-2026-10-22
 
 Evidence: `evidence/*-proof-*.json`.
 
@@ -41,7 +41,7 @@ PairPilot showed the one-legged HYPE long as incomplete, reconcile sent nothing,
 
 Not atomic, not magic. Just visible, recoverable state on @DreamDEXSomnia.
 
-<repo>
+https://github.com/zkzora/pairpilot
 
 Evidence: `evidence/recovery-injected-hype-eth-proof-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json`.
 

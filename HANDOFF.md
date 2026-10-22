@@ -77,7 +77,7 @@ The idea remains PairPilot: one ticket for a two-asset long/short perp pair (ETH
 
 - Live-verified: HYPE/SOL CLI pair `6516f259`; injected-fault recovery HYPE/ETH `8ab9e2fb` (`--inject=withhold-second-leg`, CLI open only, labeled); user-signed browser pairs ETH/BTC `bda58fa7` and SOL/BTC `43dc36bf`. All re-checked with `npm run verify -- <journal>` (scripts/verify-pair.ts).
 - Demo: `evidence/demo/pairpilot-demo.webm` via `scripts/record-demo.ts` (run against `next start`, not the dev server). When stopping a temporary `next start`, stop by PORT: the process command line has a quote between `next` and `start`.
-- Submission: README rewritten for judges; X post drafts in `docs/X-POSTS.md` (not posted); repository committed locally, NOT pushed or published.
+- Submission: README rewritten for judges; X post drafts in `docs/X-POSTS.md` (not posted); public repository https://github.com/zkzora/pairpilot (main), published with the user's go-ahead.
 - Still unverified: own-wallet signed orders (voucher gated), atomic execution, mainnet.
 
 ## Not verified / not implemented

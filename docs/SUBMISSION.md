@@ -3,7 +3,7 @@
 Rules below come from the user's supplied organizer brief. DoraHacks could not be fetched in this session; re-check current organizer rules before submitting.
 
 - Get the DoraHacks email whitelisted. Only the user should send their email/ticket unless they explicitly authorize someone else.
-- Publish a GitHub repository: the local repository is committed and ready. Publishing needs the user's go-ahead (account, name, visibility); it has not been pushed.
+- DONE 2026-10-22: public repository https://github.com/zkzora/pairpilot (default branch main), published with the user's go-ahead. Verified on GitHub: no .env.local or .pairpilot journals.
 - DONE 2026-10-22: actual PairPilot perp orders on Somnia Tokyo/50383 with hashes and zero read-back: ETH/BTC (CLI), ETH/BTC and SOL/BTC (browser, user-signed), HYPE/SOL (CLI), HYPE/ETH injected-fault recovery (CLI). See the README proof table.
 - Demo: `evidence/demo/pairpilot-demo.webm` (49 s, simulation plus testnet read-only, recorded with `scripts/record-demo.ts`). README explains the user, failure, mechanism and limits. A screen recording of a live browser signing would strengthen it; that needs the user's wallet.
 - Publish 2–3 accurate X posts tagging @DreamDEXSomnia, then put their actual links in README. Drafts: `docs/X-POSTS.md`. No posts have been sent.
