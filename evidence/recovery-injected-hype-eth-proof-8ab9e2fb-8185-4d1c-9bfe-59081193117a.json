@@ -1,0 +1,87 @@
+{
+  "mode": "testnet",
+  "kind": "read-only verification: recovery-injected-hype-eth",
+  "verifiedAt": "2026-10-22T13:58:55.307Z",
+  "chainId": 50383,
+  "planId": "8ab9e2fb-8185-4d1c-9bfe-59081193117a",
+  "journal": "evidence/testnet-pair-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json",
+  "pair": "HYPE/ETH",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "journalStatus": "flat",
+  "events": [
+    "testnet: opening the pair with bounded IOC orders.",
+    "Prepared open for HYPE.",
+    "Broadcast 0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e.",
+    "open HYPE: 310000 raw units filled.",
+    "Prepared open for ETH.",
+    "INJECTED FAULT (--inject=withhold-second-leg): the second leg was deliberately not sent, standing in for a rejected wallet signature. No order sent.",
+    "Positions reconciled against venue state. No orders sent.",
+    "Close requested. Recovery may leave residual exposure if liquidity is unavailable.",
+    "Prepared close for HYPE.",
+    "Broadcast 0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b.",
+    "close HYPE: 310000 raw units filled.",
+    "Positions reconciled against venue state. No orders sent."
+  ],
+  "transactions": [
+    {
+      "step": "open HYPE long",
+      "hash": "0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e",
+      "block": "30254953",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "78.76",
+      "filled": "0.31",
+      "avgFillPrice": "78.583548387096774193",
+      "gasUsed": "2113628",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "open ETH short",
+      "status": "rejected",
+      "note": "no transaction hash recorded (not broadcast)",
+      "message": "INJECTED FAULT (--inject=withhold-second-leg): the second leg was deliberately not sent, standing in for a rejected wallet signature. No order sent."
+    },
+    {
+      "step": "close HYPE short",
+      "hash": "0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b",
+      "block": "30255134",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "78.4",
+      "filled": "0.31",
+      "avgFillPrice": "78.63",
+      "gasUsed": "1580465",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    }
+  ],
+  "finalReadback": {
+    "readAfterBlock": "30255205",
+    "HYPE owner position": "0",
+    "ETH owner position": "0",
+    "ownerEquityUSDso": "1000.061675529271780062",
+    "ownerActivePerpPools": 0,
+    "signerGasSTT": "4.874069918"
+  },
+  "ownerFlatInJournalMarkets": true,
+  "problems": []
+}

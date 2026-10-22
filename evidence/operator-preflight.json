@@ -1,7 +1,7 @@
 {
   "mode": "testnet",
   "kind": "read-only preflight",
-  "checkedAt": "2026-10-22T10:05:51.847Z",
+  "checkedAt": "2026-10-22T10:48:51.420Z",
   "chainId": 50383,
   "execution": {
     "mode": "operator",
@@ -9,7 +9,7 @@
     "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50"
   },
   "signerGasSTT": "4.944731552",
-  "ownerEquityUSDso": "999.990822",
+  "ownerEquityUSDso": "999.996883",
   "ownerActivePerpPools": 0,
   "ownerRestingOrders": 0,
   "ownerPendingStops": 0,

@@ -78,6 +78,36 @@ describe("pair execution and recovery", () => {
     expect(venue.sends).toBe(0);
     expect(await journal.read(plan.id)).toBeNull();
   });
+  it("records a rejected second-leg signature as not sent and leaves the first leg visible", async () => {
+    const { engine, venue, plan } = setup("second-rejected");
+    const record = await engine.open(plan);
+    expect(record.status).toBe("incomplete");
+    expect(record.operations[1].status).toBe("rejected");
+    expect(record.operations[1].hash).toBeUndefined();
+    expect(record.positions[1]).toBe("0");
+    expect(venue.sends).toBe(1);
+    expect((await engine.close(plan.id)).status).toBe("flat");
+  });
+  it("reviews a close read-only, then sends exactly the reviewed quantities and bounds", async () => {
+    const { engine, venue, plan } = setup("partial");
+    const opened = await engine.open(plan);
+    const review = await engine.reviewClose(plan.id);
+    expect(venue.sends).toBe(2);
+    expect(review.basis).toEqual(opened.positions);
+    expect(review.orders.map(o => [o.leg, o.side, o.quantity])).toEqual([[0, "short", plan.legs[0].quantity], [1, "long", String(-BigInt(opened.positions[1]))]]);
+    const closed = await engine.close(plan.id, review);
+    expect(closed.status).toBe("flat");
+    expect(closed.operations.filter(o => o.kind === "close").map(o => o.limitPrice)).toEqual(review.orders.map(o => o.limitPrice));
+  });
+  it("refuses an expired close review or one whose positions changed", async () => {
+    const { engine, venue, plan } = setup();
+    await engine.open(plan);
+    const review = await engine.reviewClose(plan.id);
+    await expect(engine.close(plan.id, { ...review, expiresAt: 0 })).rejects.toThrow("expired");
+    await expect(engine.close(plan.id, { ...review, basis: ["1", review.basis[1]] })).rejects.toThrow("changed since the close review");
+    await expect(engine.close(plan.id, { ...review, pairId: "other" })).rejects.toThrow("another pair");
+    expect(venue.sends).toBe(2);
+  });
   it("refuses external changes instead of closing unrelated exposure", async () => {
     const { engine, venue, plan } = setup();
     await engine.open(plan); venue.positionsRaw[0] += 1n;

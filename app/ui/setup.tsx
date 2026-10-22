@@ -69,7 +69,7 @@ export function Setup({ path, onPath, mode, account, hasWallet, status, statusEr
               : <p>Connect first to see the exact address to fund.</p>}
             {gasWays}
           </Step>
-          <Step n={4} title="Add Perps margin (paper USDso)" check={live?.margin}>
+          <Step n={4} title={status?.execution?.mode === "operator" ? "Owner Perps margin (paper USDso)" : "Add Perps margin (paper USDso)"} check={live?.margin}>
             {live?.margin.t === "ok" ? <p>Margin is available. No voucher claim is needed.</p>
               : !v ? <p>Connect to read this address&apos;s one-time voucher state.</p>
               : !v.eligible ? <p>{voucherReasons[v.reason ?? ""] ?? "Not eligible"}. Ask the organizers for paper USDso.</p>
@@ -81,6 +81,9 @@ export function Setup({ path, onPath, mode, account, hasWallet, status, statusEr
             <p>Close other positions and cancel resting orders and pending stops, so every fill belongs to this pair.</p>
             {live && <div className="sub-checks"><Sub label="Positions" check={live.positions} /><Sub label="Resting orders" check={live.orders} /><Sub label="Pending stops (indexer)" check={live.stops} /></div>}
           </Step>
+          <Step n={6} title="Or trade your dreamDEX app wallet (Linked wallet)" check={status?.execution?.mode === "operator" ? { v: `Owner ${shortHash(status.execution.owner)}`, t: "info" } : null}>
+            <p>In the dreamDEX app, Link a Bot with Perps ticked and paste THIS browser wallet&apos;s address; a key linked for the CLI does not authorize this wallet. Then in Trade choose <strong>Linked wallet</strong> and enter the app wallet&apos;s full address. Steps 4 and 5 then read the owner&apos;s margin and positions; gas stays on this wallet. Both pools&apos; permissions are checked before preview and every send.</p>
+          </Step>
         </div> : <div className="steps-list">
           <span className="muted pretty" style={{ fontSize: 13 }}>The CLI signs with its own key in ignored <code>.env.local</code>. This website never reads that file, so the CLI address appears in your terminal, not here.</span>
           <Step n={1} title="Create or find the CLI wallet"><p><Cmd>npm run wallet:init</Cmd> creates one dedicated key and prints its address. It refuses to replace an existing file. Already set up? <Cmd>npm run wallet:status</Cmd> prints the address.</p></Step>
@@ -90,7 +93,7 @@ export function Setup({ path, onPath, mode, account, hasWallet, status, statusEr
           <Step n={5} title="Trade the pair"><p><Cmd>npm run trade -- preview</Cmd>, then <Cmd>npm run trade -- open</Cmd> within 40 seconds. Run <Cmd>npm run trade -- reconcile</Cmd> after any doubt and <Cmd>npm run trade -- close</Cmd> to unwind. These sign real testnet transactions.</p></Step>
           <Step n={6} title="Or trade your dreamDEX app wallet"><p>In the dreamDEX app, Link a Bot with Perps ticked and paste the CLI address. The app wallet keeps its margin and positions; the CLI key only signs and pays gas. Add <Cmd>--owner=0x…</Cmd> with the app wallet&apos;s FULL address to every trade command, and start with <Cmd>npm run trade -- check</Cmd>, which reads both pools&apos; permissions. Steps 4 and 5 then apply to the app wallet, not the CLI key.</p></Step>
         </div>}
-        <div className="dashed">No private keys are entered on this website. The browser trades only the connected wallet&apos;s own account. The CLI can trade a dreamDEX app wallet that linked the CLI key through Link a Bot (step 6 of the Local CLI path).</div>
+        <div className="dashed">No private keys are entered on this website. Both the browser and the CLI can trade either their own account or a dreamDEX app wallet that linked their signing key through Link a Bot. Each signer needs its own link.</div>
       </div>
       <div className="acct" aria-busy={loading}>
         {path === "cli" ? <>

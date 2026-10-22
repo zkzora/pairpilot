@@ -1,12 +1,14 @@
 import { decodePlaceOrder, type SomniaMarkets } from "@somnia-chain/markets-sdk";
-import { createPublicClient, http, type Address, type TransactionReceipt, type WalletClient } from "viem";
+import { createPublicClient, http, parseAbi, type Address, type TransactionReceipt, type WalletClient } from "viem";
 import { boundedPrice } from "../core/planner";
 import { RejectedOrder } from "../core/engine";
 import type { Hash, MarketSpec, OrderIntent, OrderOutcome, PairPlan, Side, Venue } from "../core/types";
 import { createMarkets, hidekiTestnet, NETWORK } from "../lib/network";
-import { assertPlacePermissions, encodePlaceOrderFor, IOC, operatorAbi, readPermissions, resolveExecution, revertName, type Execution } from "./operator";
+import { DEFAULT_PAIR, pairLabel, type PairSelection } from "../core/pairs";
+import { assertPlacePermissions, encodePlaceOrderFor, findLinkedOwners, IOC, operatorAbi, readPermissions, resolveExecution, revertName, type Execution, type GrantLog } from "./operator";
 import { revertData } from "./voucher";
 
+const registryAbi = parseAbi(["function getOperatorPermissionsRegistry() view returns (address)"]);
 export interface MarketSnapshot {
   market: MarketSpec;
   mark: string | null;
@@ -18,11 +20,12 @@ export interface MarketSnapshot {
   bids: { price: string; quantity: string }[];
   asks: { price: string; quantity: string }[];
 }
-export interface LiveSnapshot { mode: "testnet"; checkedAt: string; chainId: number; markets: MarketSnapshot[] }
+export interface LiveSnapshot { mode: "testnet"; checkedAt: string; chainId: number; pair: string; markets: MarketSnapshot[] }
 
-export async function readSnapshot(exchange: SomniaMarkets): Promise<LiveSnapshot> {
+/** Fresh books for the selected long/short markets, pinned to one block. Metadata comes from the SDK. */
+export async function readSnapshot(exchange: SomniaMarkets, pair: PairSelection = DEFAULT_PAIR): Promise<LiveSnapshot> {
   const all = await exchange.client.listPerpMarkets();
-  const selected = ["ETH", "BTC"].map(symbol => {
+  const selected = [pair.long, pair.short].map(symbol => {
     const market = all.find(m => m.baseSymbol === symbol);
     if (!market) throw new Error(`${symbol} perp is unavailable.`);
     return market;
@@ -39,7 +42,7 @@ export async function readSnapshot(exchange: SomniaMarkets): Promise<LiveSnapsho
     const market: MarketSpec = { symbol: m.baseSymbol!, pool: m.poolAddress, marginBank: m.marginBank, baseDecimals: m.baseDecimals, quoteDecimals: m.quoteDecimals, tick: m.tickSize, lot: m.lotSize, minimum: m.minQuantity };
     return { market, mark: state.markPriceOk ? String(state.markPrice) : null, bid: book.bids[0] ? String(book.bids[0].price) : null, ask: book.asks[0] ? String(book.asks[0].price) : null, fundingRate: String(state.fundingRate), fundingWindowSec: state.fundingWindowSec, bookBlock: String(blockNumber), bids: book.bids.map(l => ({ price: String(l.price), quantity: String(l.quantity) })), asks: book.asks.map(l => ({ price: String(l.price), quantity: String(l.quantity) })) };
   }));
-  return { mode: "testnet", checkedAt: new Date().toISOString(), chainId, markets };
+  return { mode: "testnet", checkedAt: new Date().toISOString(), chainId, pair: pairLabel(pair), markets };
 }
 
 export function outcomeFromReceipt(receipt: TransactionReceipt, pool: Address): OrderOutcome {
@@ -89,6 +92,39 @@ export class DreamdexVenue implements Venue {
   /** What each pool enforces for owner -> signer. Own-wallet execution needs no grant. */
   async permissions(pools: { symbol: string; pool: Address }[]) {
     return readPermissions((pool, selector) => this.rpc.readContract({ address: pool, abi: operatorAbi, functionName: "isOperatorAuthorized", args: [this.account, this.signer, selector] }), pools);
+  }
+  /**
+   * Read-only: app wallets that linked THIS signer through Link a Bot, from the registry's
+   * recent grant logs (default 24 h at ~10 blocks/s), each verified with the pools' own
+   * isOperatorAuthorized and read for margin. Never applied automatically.
+   */
+  async discoverOwners(pools: { symbol: string; pool: Address; marginBank?: Address; quoteDecimals?: number }[], onProgress?: (scannedBlocks: bigint) => void) {
+    // The pool names the registry it enforces; read over plain RPC.
+    const registry = await this.rpc.readContract({ address: pools[0].pool, abi: registryAbi, functionName: "getOperatorPermissionsRegistry" });
+    if (/^0x0{40}$/i.test(registry)) return { owners: [], scannedBlocks: 0n };
+    const signerTopic = `0x${this.signer.slice(2).toLowerCase().padStart(64, "0")}` as `0x${string}`;
+    const hex = (n: bigint) => `0x${n.toString(16)}` as const;
+    const head = await this.rpc.getBlockNumber();
+    const found = await findLinkedOwners({
+      signer: this.signer, head, onProgress,
+      getLogs: (from, to) => this.rpc.request({ method: "eth_getLogs", params: [{ address: registry, fromBlock: hex(from), toBlock: hex(to), topics: [null, null, null, signerTopic] }] }) as Promise<GrantLog[]>,
+    });
+    const owners = await Promise.all(found.owners.filter(o => o.owner !== this.signer).map(async o => {
+      const permissions = await readPermissions((pool, selector) => this.rpc.readContract({ address: pool, abi: operatorAbi, functionName: "isOperatorAuthorized", args: [o.owner, this.signer, selector] }), pools);
+      const bank = pools[0].marginBank;
+      const equity = bank ? await this.exchange.client.getMarginAccount(bank, o.owner).then(b => b.equity).catch(() => null) : null;
+      return { ...o, verified: permissions.every(x => x.placeOrderFor), permissions, equity, quoteDecimals: pools[0].quoteDecimals ?? 18 };
+    }));
+    return { owners, scannedBlocks: found.scannedBlocks };
+  }
+  /** The selected pair's two pools, from runtime market discovery. */
+  async pairPools(pair: PairSelection = DEFAULT_PAIR) {
+    const all = await this.exchange.client.listPerpMarkets();
+    return [pair.long, pair.short].map(symbol => {
+      const market = all.find(m => m.baseSymbol === symbol);
+      if (!market) throw new Error(`${symbol} perp is unavailable.`);
+      return { symbol, pool: market.poolAddress, marginBank: market.marginBank, quoteDecimals: market.quoteDecimals };
+    });
   }
   private async checkPermission(plan: PairPlan, legs: (0 | 1)[]) {
     if (this.execution.mode === "own") return;

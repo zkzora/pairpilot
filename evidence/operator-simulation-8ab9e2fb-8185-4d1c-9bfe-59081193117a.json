@@ -1,0 +1,27 @@
+{
+  "mode": "testnet",
+  "kind": "read-only transaction simulation",
+  "at": "2026-10-22T13:58:22.655Z",
+  "planId": "8ab9e2fb-8185-4d1c-9bfe-59081193117a",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "results": [
+    {
+      "leg": "HYPE",
+      "side": "long",
+      "quantity": "310000",
+      "limitPrice": "78760000000000000000",
+      "simulation": "ok"
+    },
+    {
+      "leg": "ETH",
+      "side": "short",
+      "quantity": "10400000000000000",
+      "limitPrice": "2401040000000000000000",
+      "simulation": "ok"
+    }
+  ],
+  "signedTransactions": 0,
+  "note": "Each leg simulated from the current flat state; leg 2 is re-checked live before it is sent."
+}

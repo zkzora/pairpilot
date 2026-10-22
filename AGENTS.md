@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # PairPilot project instructions
 
-Read README.md, HANDOFF.md and docs/TESTNET.md before continuing. The accepted product is a long ETH / short BTC pair workflow with actual fill reconciliation and explicit unwind. The user will choose visuals in Claude Design; do not start branding or pivot the product.
+Read README.md, HANDOFF.md and docs/TESTNET.md before continuing. The accepted product is a two-asset long/short perp pair workflow (ETH, BTC, SOL, HYPE presets; ETH/BTC default) with actual fill reconciliation and explicit unwind. The user will choose visuals in Claude Design; do not start branding or pivot the product.
 
 - Start product decisions from the specific trader failure, cost, mechanism and strongest practical alternative. Demand and differentiation remain hypotheses until validated.
 - Keep simulation, live read-only checks, signed testnet execution and mainnet evidence separate. Never fabricate receipts, X posts, findings, interviews or award claims.

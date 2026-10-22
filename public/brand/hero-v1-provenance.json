@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "asset": "public/brand/pairpilot-hero-v1.png",
+  "prompt": "Use case: product-mockup. Asset type: original hero artwork for PairPilot, a precision long/short trading interface. Create a high-end photorealistic studio photograph of a sculptural precision instrument: TWO broad parallel machined-aluminum ribbon rails, smooth rectangular cross-section with crisp chamfered edges, sweeping through two controlled opposing 90-degree bends like paired architectural flight paths, one satin cobalt blue anodized metal and one pale brushed titanium. The paths remain visibly separate, staggered and aligned along the same directional axis, with an intentional square negative-space opening between them reminiscent of a paired-block geometric logo. Physical solid heavy objects, NOT floating liquid loops or toruses. A dark midnight blue-green seamless studio background (#071116), restrained cobalt highlights, soft white edge light, deep natural shadows, fine realistic metal grain. Dramatic macro product photography, three-quarter view, quiet mechanical confidence, substantial minimal silhouette. Subject occupies center-right of a wide landscape composition, mostly uncluttered dark space left, no text, no logos, no charts, no coins, no arrows, no decorative particles, no holograms, no purple, no neon glow, no gradient orb, no infinity symbol. Broad horizontal landscape image suitable for a premium website hero. This is conceptual brand art, not a photograph of trading hardware in use.",
+  "usage": "Conceptual brand artwork; not a photograph of an implemented trading device.",
+  "references": [
+    {
+      "url": "https://morpho.org/",
+      "observed": "Large left-aligned headline, clear blue CTA, technical graphic in a single dominant hero.",
+      "adapted": "Single focal hero; current PairPilot palette and original generated artwork."
+    },
+    {
+      "url": "https://linear.app/",
+      "observed": "Restrained monochrome typography, wide product preview and narrative sections.",
+      "adapted": "Interactive illustrated workspace, strong heading hierarchy and one distinct purpose per section."
+    },
+    {
+      "url": "https://www.pear.garden/",
+      "observed": "Clear long/short explanation and direct trading CTA; hero visually tied to trading.",
+      "adapted": "Explain both legs and execution outcomes, then link to the working dashboard. No copied assets, volume statistics or profit claims."
+    }
+  ],
+  "routes": {
+    "landing": "/home",
+    "dashboard": "/",
+    "wireframes": "/wireframes"
+  },
+  "scope": "Local-only landing and interactive wireframes; existing engine, wallet signing and journals preserved."
+}

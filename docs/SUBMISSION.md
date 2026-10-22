@@ -3,10 +3,10 @@
 Rules below come from the user's supplied organizer brief. DoraHacks could not be fetched in this session; re-check current organizer rules before submitting.
 
 - Get the DoraHacks email whitelisted. Only the user should send their email/ticket unless they explicitly authorize someone else.
-- Publish a GitHub repository; none has been created remotely during this session.
-- Produce actual PairPilot perp orders on Somnia Tokyo/50383 with transaction hashes and read-back. Read-only checks and simulation do not satisfy this requirement.
-- Record an end-to-end demo and explain the target user, failure, mechanism and recovery limits in README.
-- Publish 2–3 accurate X posts tagging @DreamDEXSomnia, then put their actual links in README. No posts have been sent.
+- Publish a GitHub repository: the local repository is committed and ready. Publishing needs the user's go-ahead (account, name, visibility); it has not been pushed.
+- DONE 2026-10-22: actual PairPilot perp orders on Somnia Tokyo/50383 with hashes and zero read-back: ETH/BTC (CLI), ETH/BTC and SOL/BTC (browser, user-signed), HYPE/SOL (CLI), HYPE/ETH injected-fault recovery (CLI). See the README proof table.
+- Demo: `evidence/demo/pairpilot-demo.webm` (49 s, simulation plus testnet read-only, recorded with `scripts/record-demo.ts`). README explains the user, failure, mechanism and limits. A screen recording of a live browser signing would strengthen it; that needs the user's wallet.
+- Publish 2–3 accurate X posts tagging @DreamDEXSomnia, then put their actual links in README. Drafts: `docs/X-POSTS.md`. No posts have been sent.
 - Keep one reproducible accepted-candidate feedback item per Markdown file in `feedback/`; do not manufacture findings or report expected/injected behavior as sponsor faults.
 - Submit before November 1, 23:59 UTC (November 2, 06:59 WIB), subject to organizer confirmation.
 - If selected, plan the later mainnet migration and order proof. The supplied brief splits each $500 MVP award into $300 at results and $200 after qualifying mainnet use within 30 days of perps launch. Mainnet support is not implemented here.

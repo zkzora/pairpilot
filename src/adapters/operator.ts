@@ -57,3 +57,44 @@ export function revertName(data: string | undefined) {
   if (!data || data === "0x") return undefined;
   try { return decodeErrorResult({ abi: contractErrorsAbi, data: data as Hex }).errorName; } catch { return undefined; }
 }
+
+export interface GrantLog { topics: string[]; data: string; blockNumber: string; logIndex?: string }
+export interface LinkedOwner { owner: Address; latestBlock: bigint }
+
+/**
+ * Find app wallets that granted `signer` placeOrderFor through Link a Bot, newest first.
+ * Registry grant events are topic1 pool, topic2 owner, topic3 operator; data is selector
+ * then approved. The newest event per (owner, pool, selector) decides, so a later revoke
+ * wins. Callers must still confirm with each pool's isOperatorAuthorized before trading.
+ */
+export async function findLinkedOwners(p: {
+  signer: Address; head: bigint; getLogs: (from: bigint, to: bigint) => Promise<GrantLog[]>;
+  window?: bigint; maxWindows?: number; parallel?: number; onProgress?: (scannedBlocks: bigint) => void;
+}): Promise<{ owners: LinkedOwner[]; scannedBlocks: bigint }> {
+  const window = p.window ?? 1000n, maxWindows = p.maxWindows ?? 864, parallel = p.parallel ?? 8;
+  const signerTopic = `0x${p.signer.slice(2).toLowerCase().padStart(64, "0")}`;
+  const decided = new Map<string, boolean>(), latest = new Map<Address, bigint>();
+  let scanned = 0n;
+  for (let start = 0; start < maxWindows; start += parallel) {
+    const windows = Array.from({ length: Math.min(parallel, maxWindows - start) }, (_, i) => {
+      const to = p.head - BigInt(start + i) * window;
+      return { from: to - window + 1n > 0n ? to - window + 1n : 0n, to };
+    }).filter(w => w.to >= 0n);
+    if (!windows.length) break;
+    const batches = await Promise.all(windows.map(w => p.getLogs(w.from, w.to)));
+    // Newest window first, newest log first within it.
+    for (const logs of batches) for (const log of [...logs].reverse()) {
+      if (log.topics.length < 4 || log.topics[3].toLowerCase() !== signerTopic) continue;
+      const owner = getAddress(`0x${log.topics[2].slice(26)}`), pool = log.topics[1].toLowerCase(), selector = log.data.slice(0, 10).toLowerCase();
+      const key = `${owner}:${pool}:${selector}`;
+      if (decided.has(key)) continue;
+      const approved = BigInt(`0x${log.data.slice(66, 130) || "0"}`) !== 0n;
+      decided.set(key, approved);
+      if (approved && selector === OPERATOR_SELECTOR.placeOrderFor && !latest.has(owner)) latest.set(owner, BigInt(log.blockNumber));
+    }
+    scanned = p.head - windows.at(-1)!.from + 1n;
+    p.onProgress?.(scanned);
+    if (latest.size) break;
+  }
+  return { owners: [...latest].map(([owner, latestBlock]) => ({ owner, latestBlock })), scannedBlocks: scanned };
+}

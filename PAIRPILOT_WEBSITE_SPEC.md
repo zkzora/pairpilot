@@ -60,7 +60,7 @@ Use three main navigation items:
 | Menu | Route | Purpose | Current status |
 | --- | --- | --- | --- |
 | Trade | `/` | Create, review, open, reconcile, and close the active pair | Functional v0 exists |
-| Activity | `/activity` | Browse local pair journals and receipts | Proposed; not implemented |
+| Activity | Activity tab on `/` | Browse local pair journals and receipts | Implemented (tab, not a separate route) |
 | Setup | `/setup` | Prepare wallet, network, gas, and margin | Guide exists |
 
 Use top navigation on desktop and accessible tabs on mobile. Three items do not need a large sidebar. Avoid a separate Dashboard menu duplicating Trade.
@@ -262,7 +262,7 @@ Include:
 
 Only mark checks passed when actually read: network, wallet, gas, margin, positions, resting orders, pending stops. Explain indexer limitations for stop discovery. Otherwise show manual instructions or Not checked.
 
-Link a Bot is a different integration; operator trading for app-wallet owners is not implemented. Do not present it as a working v0 execution path.
+Link a Bot operator trading is implemented: the browser's Execution panel offers Own wallet or Linked wallet. It is verified live from the CLI only (2026-10-22); present browser operator signing as unverified until a live browser proof exists.
 
 No private-key form. CLI keys stay in ignored local files.
 
@@ -340,7 +340,7 @@ Avoid fullscreen heroes, oversized sidebars, decorative metric cards, nested car
 
 **P2 — only with a validated need and verified integration**
 - Other markets/custom allocations, historical ratio chart.
-- Link a Bot operator mode, Reactivity, supported atomic execution.
+- Reactivity, supported atomic execution. (Link a Bot operator mode moved into v0; see the implementation table.)
 - Finish-the-missing-leg policy, spread triggers, automation.
 - Marketing landing page and eventual mainnet support.
 
@@ -356,8 +356,10 @@ Exclude AI chat, copy trading, vaults, tokens, leaderboards, referrals, and soci
 | Local simulation | `src/adapters/simulated.ts` | Implemented |
 | Browser journal/locks | `src/core/journal.ts` | Implemented |
 | Own-wallet signing | `src/adapters/dreamdex.ts` | Implemented; funded execution unverified |
-| Activity | New route + journal enumeration | Proposed |
-| Account-readiness UI | SDK-backed read model | Incomplete |
+| Linked-wallet operator signing | `src/adapters/operator.ts`, `dreamdex.ts`, `app/ui/account.tsx` | Implemented; CLI live-verified, browser unverified |
+| Close review | `PairEngine.reviewClose`, `app/ui/close.tsx` | Implemented |
+| Activity | Journal enumeration in the Activity tab | Implemented |
+| Account-readiness UI | SDK-backed read model (Setup, Execution panel) | Implemented |
 | Historical charts/combined PnL | Additional data/calculations | Proposed |
 
 Reuse planner/engine arithmetic. Do not add a server signing endpoint or expose CLI secrets in the browser bundle.

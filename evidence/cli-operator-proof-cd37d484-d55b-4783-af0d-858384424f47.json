@@ -1,0 +1,127 @@
+{
+  "mode": "testnet",
+  "kind": "read-only verification: cli-operator",
+  "verifiedAt": "2026-10-22T14:20:13.474Z",
+  "chainId": 50383,
+  "planId": "cd37d484-d55b-4783-af0d-858384424f47",
+  "journal": "evidence/testnet-pair-cd37d484-d55b-4783-af0d-858384424f47.json",
+  "pair": "ETH/BTC",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "journalStatus": "flat",
+  "events": [
+    "testnet: opening the pair with bounded IOC orders.",
+    "Prepared open for ETH.",
+    "Broadcast 0xce94c5e657a7e9dc349fbef716eaf8de523c79f35a7a5cdfa4d5511577a5d1aa.",
+    "open ETH: 10300000000000000 raw units filled.",
+    "Prepared open for BTC.",
+    "Broadcast 0xd1f3431acc76b411e56fc7900ca3cf81bfe2316f2e281620b0f8212db21427f3.",
+    "open BTC: 30000 raw units filled.",
+    "Positions reconciled against venue state. No orders sent.",
+    "Close requested. Recovery may leave residual exposure if liquidity is unavailable.",
+    "Prepared close for ETH.",
+    "Broadcast 0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00.",
+    "close ETH: 10300000000000000 raw units filled.",
+    "Prepared close for BTC.",
+    "Broadcast 0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5.",
+    "close BTC: 30000 raw units filled.",
+    "Positions reconciled against venue state. No orders sent."
+  ],
+  "transactions": [
+    {
+      "step": "open ETH long",
+      "hash": "0xce94c5e657a7e9dc349fbef716eaf8de523c79f35a7a5cdfa4d5511577a5d1aa",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xce94c5e657a7e9dc349fbef716eaf8de523c79f35a7a5cdfa4d5511577a5d1aa",
+      "block": "30108905",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "2410.13",
+      "filled": "0.0103",
+      "avgFillPrice": "2402.88",
+      "gasUsed": "3086099",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "open BTC short",
+      "hash": "0xd1f3431acc76b411e56fc7900ca3cf81bfe2316f2e281620b0f8212db21427f3",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xd1f3431acc76b411e56fc7900ca3cf81bfe2316f2e281620b0f8212db21427f3",
+      "block": "30108926",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "81705.3",
+      "filled": "0.0003",
+      "avgFillPrice": "81969.2",
+      "gasUsed": "2864122",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "close ETH short",
+      "hash": "0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00",
+      "block": "30109717",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "2395.82",
+      "filled": "0.0103",
+      "avgFillPrice": "2403.02",
+      "gasUsed": "1651327",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "close BTC long",
+      "hash": "0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5",
+      "block": "30109736",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "82250.6",
+      "filled": "0.0003",
+      "avgFillPrice": "82004.6",
+      "gasUsed": "1587079",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    }
+  ],
+  "finalReadback": {
+    "readAfterBlock": "30267978",
+    "ETH owner position": "0",
+    "BTC owner position": "0",
+    "ownerEquityUSDso": "1000.061675529271780062",
+    "ownerActivePerpPools": 0,
+    "signerGasSTT": "4.874069918"
+  },
+  "ownerFlatInJournalMarkets": true,
+  "problems": []
+}

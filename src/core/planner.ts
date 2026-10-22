@@ -41,3 +41,23 @@ export function makePlan(input: {
   const now = input.now ?? Date.now();
   return { id: input.id, account: input.account, signer: input.signer ?? input.account, mode: input.mode, chainId: 50383, createdAt: now, expiresAt: now + 60_000, slippageBps: input.slippageBps, legs };
 }
+
+export interface BookLevel { price: string; quantity: string }
+export interface PairBook { symbol: string; mark: string | null; bids: BookLevel[]; asks: BookLevel[] }
+
+/** A fresh read must be exactly the selected long/short markets, each with a live mark. */
+export function assertSnapshotPair(books: readonly PairBook[], pair: { long: string; short: string }) {
+  if (books.length !== 2 || books[0].symbol !== pair.long || books[1].symbol !== pair.short) throw new Error(`Market read is for ${books.map(b => b.symbol).join("/")}, not ${pair.long}/${pair.short}. Refresh prices; no preview created.`);
+  const stale = books.filter(b => !b.mark).map(b => b.symbol);
+  if (stale.length) throw new Error(`${stale.join(" and ")}: mark is stale. New pairs are unavailable.`);
+}
+/** Visible depth inside each leg's price bound must cover its quantity: asks for the long, bids for the short. */
+export function assertDepth(plan: PairPlan, books: readonly PairBook[]) {
+  plan.legs.forEach((leg, i) => {
+    if (books[i]?.symbol !== leg.market.symbol) throw new Error(`${leg.market.symbol}: book does not match the plan. Refresh prices.`);
+    const levels = leg.side === "long" ? books[i].asks : books[i].bids;
+    const inside = levels.filter(l => leg.side === "long" ? BigInt(l.price) <= BigInt(leg.limitPrice) : BigInt(l.price) >= BigInt(leg.limitPrice));
+    const visible = inside.reduce((sum, l) => sum + BigInt(l.quantity), 0n);
+    if (visible < BigInt(leg.quantity)) throw new Error(`${leg.market.symbol}: insufficient visible depth within your slippage bound. Reduce notional or refresh.`);
+  });
+}

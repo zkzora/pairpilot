@@ -1,0 +1,244 @@
+{
+  "kind": "RPC verification of user-exported browser journals",
+  "checkedAt": "2026-10-22T12:26:53.234Z",
+  "chainId": 50383,
+  "source": "User supplied browser exports; transactions and fills independently checked via RPC. Current positions are a separate latest-state read, not a historical snapshot.",
+  "reports": [
+    {
+      "source": "pairpilot-testnet-bda58fa7-368a-4915-af86-62bc1fbad4f6.json",
+      "journal": "evidence/browser-journal-bda58fa7-368a-4915-af86-62bc1fbad4f6-flat.json",
+      "planId": "bda58fa7-368a-4915-af86-62bc1fbad4f6",
+      "recordedStatus": "flat",
+      "recordedPositions": [
+        "0",
+        "0"
+      ],
+      "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "signer": "0xd41C88eE843dcCBe6E8AD3D62e4c33Ccb6C9787b",
+      "transactions": [
+        {
+          "kind": "open",
+          "symbol": "ETH",
+          "hash": "0x971ad9d010d22bafd7d2f11ecf7411eb49a47453c169706f36c88425f4d6e57a",
+          "block": "30143879",
+          "filled": "0.0207",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "open",
+          "symbol": "BTC",
+          "hash": "0x47911ce1c0baf54879c5d6e43ba90ec9c1f88cefed434b9c02e9b7f4f8b25035",
+          "block": "30143924",
+          "filled": "0.00061",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "close",
+          "symbol": "ETH",
+          "hash": "0x92e53f5fc050a6b30d9cd9d3b472661a0ca26f9d59d63bcc8caef2903007d233",
+          "block": "30164688",
+          "filled": "0.0207",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "close",
+          "symbol": "BTC",
+          "hash": "0x51cc3536be3b663b9fc89313f22ed18c5f6befc1c52acaf04ddcec9187b69b55",
+          "block": "30164734",
+          "filled": "0.00061",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        }
+      ]
+    },
+    {
+      "source": "pairpilot-testnet-43dc36bf-185e-4b9b-bda1-8d9cc2655f34 (1).json",
+      "journal": "evidence/browser-journal-43dc36bf-185e-4b9b-bda1-8d9cc2655f34-flat.json",
+      "planId": "43dc36bf-185e-4b9b-bda1-8d9cc2655f34",
+      "recordedStatus": "flat",
+      "recordedPositions": [
+        "0",
+        "0"
+      ],
+      "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "signer": "0xd41C88eE843dcCBe6E8AD3D62e4c33Ccb6C9787b",
+      "transactions": [
+        {
+          "kind": "open",
+          "symbol": "SOL",
+          "hash": "0x41a24218af1ae1261c3314806627c801c80505b0fe561d7ded668447a066361e",
+          "block": "30192687",
+          "filled": "0.23",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "open",
+          "symbol": "BTC",
+          "hash": "0x5fb8759ffb7b9884616f4c403e825dfde9f03414284261a62afe31536641b7f3",
+          "block": "30192735",
+          "filled": "0.0003",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "close",
+          "symbol": "SOL",
+          "hash": "0x6270c900b713807cdbd8f8865d19b37376544254069f8eeeff5782a28dd28718",
+          "block": "30198873",
+          "filled": "0.23",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "close",
+          "symbol": "BTC",
+          "hash": "0x153e30aa2a2076420251b56c0ef0b1530c9eba47bbd98b0147593d3a840b661b",
+          "block": "30198919",
+          "filled": "0.0003",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        }
+      ]
+    },
+    {
+      "source": "pairpilot-testnet-43dc36bf-185e-4b9b-bda1-8d9cc2655f34.json",
+      "journal": "evidence/browser-journal-43dc36bf-185e-4b9b-bda1-8d9cc2655f34-paired.json",
+      "planId": "43dc36bf-185e-4b9b-bda1-8d9cc2655f34",
+      "recordedStatus": "paired",
+      "recordedPositions": [
+        "230000000",
+        "-30000"
+      ],
+      "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "signer": "0xd41C88eE843dcCBe6E8AD3D62e4c33Ccb6C9787b",
+      "transactions": [
+        {
+          "kind": "open",
+          "symbol": "SOL",
+          "hash": "0x41a24218af1ae1261c3314806627c801c80505b0fe561d7ded668447a066361e",
+          "block": "30192687",
+          "filled": "0.23",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        },
+        {
+          "kind": "open",
+          "symbol": "BTC",
+          "hash": "0x5fb8759ffb7b9884616f4c403e825dfde9f03414284261a62afe31536641b7f3",
+          "block": "30192735",
+          "filled": "0.0003",
+          "checks": {
+            "success": true,
+            "signer": true,
+            "pool": true,
+            "owner": true,
+            "side": true,
+            "quantity": true,
+            "limit": true,
+            "ioc": true,
+            "filled": true
+          }
+        }
+      ]
+    }
+  ],
+  "currentOwnerPositions": [
+    {
+      "symbol": "ETH",
+      "size": "0"
+    },
+    {
+      "symbol": "BTC",
+      "size": "0"
+    },
+    {
+      "symbol": "SOL",
+      "size": "0"
+    }
+  ]
+}

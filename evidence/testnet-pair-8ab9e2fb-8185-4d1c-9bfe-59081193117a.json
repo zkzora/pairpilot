@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "plan": {
+    "id": "8ab9e2fb-8185-4d1c-9bfe-59081193117a",
+    "account": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+    "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+    "mode": "testnet",
+    "chainId": 50383,
+    "createdAt": 1792677496543,
+    "expiresAt": 1792677556543,
+    "slippageBps": 30,
+    "legs": [
+      {
+        "market": {
+          "symbol": "HYPE",
+          "pool": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+          "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+          "baseDecimals": 6,
+          "quoteDecimals": 18,
+          "tick": "10000000000000000",
+          "lot": "10000",
+          "minimum": "120000"
+        },
+        "side": "long",
+        "quantity": "310000",
+        "limitPrice": "78760000000000000000",
+        "referencePrice": "78530000000000000000"
+      },
+      {
+        "market": {
+          "symbol": "ETH",
+          "pool": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+          "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+          "baseDecimals": 18,
+          "quoteDecimals": 18,
+          "tick": "10000000000000000",
+          "lot": "100000000000000",
+          "minimum": "4000000000000000"
+        },
+        "side": "short",
+        "quantity": "10400000000000000",
+        "limitPrice": "2401040000000000000000",
+        "referencePrice": "2408260000000000000000"
+      }
+    ]
+  },
+  "status": "flat",
+  "positions": [
+    "0",
+    "0"
+  ],
+  "operations": [
+    {
+      "id": "8ab9e2fb-8185-4d1c-9bfe-59081193117a:open:0",
+      "leg": 0,
+      "kind": "open",
+      "side": "long",
+      "quantity": "310000",
+      "limitPrice": "78760000000000000000",
+      "status": "confirmed",
+      "hash": "0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e",
+      "filled": "310000"
+    },
+    {
+      "id": "8ab9e2fb-8185-4d1c-9bfe-59081193117a:open:1",
+      "leg": 1,
+      "kind": "open",
+      "side": "short",
+      "quantity": "10400000000000000",
+      "limitPrice": "2401040000000000000000",
+      "status": "rejected",
+      "message": "INJECTED FAULT (--inject=withhold-second-leg): the second leg was deliberately not sent, standing in for a rejected wallet signature. No order sent."
+    },
+    {
+      "id": "8ab9e2fb-8185-4d1c-9bfe-59081193117a:close:2",
+      "leg": 0,
+      "kind": "close",
+      "side": "short",
+      "quantity": "310000",
+      "limitPrice": "78400000000000000000",
+      "status": "confirmed",
+      "hash": "0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b",
+      "filled": "310000"
+    }
+  ],
+  "events": [
+    {
+      "at": 1792677507561,
+      "message": "testnet: opening the pair with bounded IOC orders."
+    },
+    {
+      "at": 1792677508525,
+      "message": "Prepared open for HYPE."
+    },
+    {
+      "at": 1792677509045,
+      "message": "Broadcast 0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e."
+    },
+    {
+      "at": 1792677509152,
+      "message": "open HYPE: 310000 raw units filled."
+    },
+    {
+      "at": 1792677510371,
+      "message": "Prepared open for ETH."
+    },
+    {
+      "at": 1792677510373,
+      "message": "INJECTED FAULT (--inject=withhold-second-leg): the second leg was deliberately not sent, standing in for a rejected wallet signature. No order sent."
+    },
+    {
+      "at": 1792677522629,
+      "message": "Positions reconciled against venue state. No orders sent."
+    },
+    {
+      "at": 1792677525270,
+      "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+    },
+    {
+      "at": 1792677526628,
+      "message": "Prepared close for HYPE."
+    },
+    {
+      "at": 1792677527148,
+      "message": "Broadcast 0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b."
+    },
+    {
+      "at": 1792677527255,
+      "message": "close HYPE: 310000 raw units filled."
+    },
+    {
+      "at": 1792677529981,
+      "message": "Positions reconciled against venue state. No orders sent."
+    }
+  ]
+}

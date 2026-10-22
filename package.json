@@ -15,7 +15,8 @@
     "wallet:init": "tsx scripts/wallet.ts init",
     "wallet:status": "tsx scripts/wallet.ts status",
     "wallet:claim": "tsx scripts/wallet.ts claim",
-    "trade": "tsx scripts/trade.ts"
+    "trade": "tsx scripts/trade.ts",
+    "verify": "tsx scripts/verify-pair.ts"
   },
   "dependencies": {
     "@somnia-chain/markets-sdk": "0.32.1",

@@ -30,7 +30,7 @@ Successful opening means BOTH actual signed position sizes match the plan's quan
 
 Signed pair evidence is written to `evidence/testnet-pair-<id>.json`, with the local recovery journal in `.pairpilot/<id>.json`. Preserve the journal across crashes. A nonzero residual or unknown send returns CLI exit code 2. Operational failure returns 1. Simulation hashes must never be put into an explorer link or presented as real.
 
-## Linked app-wallet operator (CLI)
+## Linked app-wallet operator (CLI; the browser uses the same adapter)
 
 Link a Bot (Perps ticked) writes OperatorPermissionsRegistry grants for `placeOrderFor` (0x80054449), `cancelOrderFor` (0xe37b444b) and `reduceOrderFor` (0x364c2587) on each perp pool for one owner. PairPilot follows the official bot kit's `perp-core/src/operator.ts` flow: reads stay on the SDK pointed at the owner, and the signer sends `placeOrderFor(owner, …)` to the pool with explicit IOC (2), expiry and price bound.
 
@@ -53,7 +53,7 @@ An ordinary opposite-side IOC is not contract-enforced reduce-only. These client
 
 ## Browser path
 
-Use an injected EVM wallet with its own funded address and no existing activity. Connect in Testnet wallet mode, review a fresh preview, acknowledge the dedicated-account limit and sign. The server does not hold keys or sign transactions. Reconnect the SAME account after refresh to find its local journal. Do not use browser and CLI for the same wallet at once; their locks are independent.
+Use an injected EVM wallet. In Testnet mode, the Execution panel chooses **Own wallet** (the connected address trades its own margin) or **Linked wallet** (the connected address signs and pays gas for a dreamDEX app wallet that linked it through Link a Bot). For Linked wallet, enter the owner's full address; the panel shows owner margin, positions, orders and stops apart from signer gas, and reads both pools' `isOperatorAuthorized` for THIS signer. A CLI link does not authorize a browser wallet. Preview and every send re-check permissions. Closing first shows a close review of the actual remaining quantities and price bounds. The server does not hold keys or sign transactions. Reconnect the SAME signer after refresh (and re-apply the owner) to find its local journal; a wallet account or network change drops the session. Do not use browser and CLI for the same owner at once; their locks are independent. Step-by-step: [BROWSER-WALKTHROUGH.md](BROWSER-WALKTHROUGH.md). Not yet performed live.
 
 ## Atomicity investigation
 

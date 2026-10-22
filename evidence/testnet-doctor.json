@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-22T06:44:41.612Z",
+  "checkedAt": "2026-10-22T13:55:47.619Z",
   "network": {
     "id": 50383,
     "name": "Somnia Tokyo / Hideki testnet",
@@ -11,9 +11,39 @@
   "sdk": "0.32.1",
   "signedTransactions": 0,
   "chainId": 50383,
-  "block": "29994852",
+  "block": "30253346",
   "marketCount": 21,
-  "pair": [
+  "assets": [
+    {
+      "symbol": "HYPE",
+      "pool": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+      "baseDecimals": 6,
+      "quoteDecimals": 18,
+      "tickSize": "10000000000000000",
+      "lotSize": "10000",
+      "minQuantity": "120000",
+      "mark": "78458894838852500000",
+      "priceable": true,
+      "fundingRate": "100000000000000",
+      "fundingWindowSec": 28800,
+      "fullyWired": true
+    },
+    {
+      "symbol": "SOL",
+      "pool": "0xb483ec1fb34996638677c20ab087b16f1896fa53",
+      "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+      "baseDecimals": 9,
+      "quoteDecimals": 18,
+      "tickSize": "10000000000000000",
+      "lotSize": "10000000",
+      "minQuantity": "100000000",
+      "mark": "105051612564322000000",
+      "priceable": true,
+      "fundingRate": "100000000000000",
+      "fundingWindowSec": 28800,
+      "fullyWired": true
+    },
     {
       "symbol": "ETH",
       "pool": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
@@ -23,7 +53,7 @@
       "tickSize": "10000000000000000",
       "lotSize": "100000000000000",
       "minQuantity": "4000000000000000",
-      "mark": "2428268569226312000000",
+      "mark": "2409640577694422500000",
       "priceable": true,
       "fundingRate": "100000000000000",
       "fundingWindowSec": 28800,
@@ -38,9 +68,9 @@
       "tickSize": "100000000000000000",
       "lotSize": "1000",
       "minQuantity": "13000",
-      "mark": "82425795043827516000000",
+      "mark": "81639254860860624000000",
       "priceable": true,
-      "fundingRate": "1050952423805239",
+      "fundingRate": "1344382123878623",
       "fundingWindowSec": 28800,
       "fullyWired": true
     }

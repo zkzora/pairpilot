@@ -4,7 +4,8 @@ import { MemoryJournal } from "../../src/core/journal";
 import { makePlan } from "../../src/core/planner";
 import type { PairRecord } from "../../src/core/types";
 import { SIM_MARKETS, SIM_PRICES, SimulatedVenue, type Scenario } from "../../src/adapters/simulated";
-import { legView, pairAlert, pairStatus, totalNotional } from "./view";
+import { belowMinimum, closableLegs, humanEvent, legView, pairAlert, pairStatus, totalNotional } from "./view";
+import { simMarkets, simPrices } from "../../src/adapters/simulated";
 
 async function run(scenario: Scenario) {
   const venue = new SimulatedVenue(scenario), engine = new PairEngine(venue, new MemoryJournal());
@@ -60,5 +61,33 @@ describe("dashboard view of journal records (simulated engine runs)", () => {
     expect(legView(pending, 0, false).status).toBe("Interrupted");
     expect(pairStatus(pending, false).label).toBe("Needs reconciliation");
     expect(pairAlert(pending, false)?.title).toContain("no transaction hash");
+  });
+});
+
+describe("Activity timeline wording", () => {
+  it("shows human amounts and short hashes instead of raw units", async () => {
+    const { record } = await run("success");
+    const text = record.events.map(e => humanEvent(e.message, record.plan)).join(" | ");
+    expect(text).toContain("open ETH: 0.0199 ETH filled");
+    expect(text).toContain("Broadcast 0x0000…0001");
+    expect(text).not.toMatch(/raw units/);
+    expect(text).not.toMatch(/0x[0-9a-f]{64}/);
+  });
+});
+
+describe("dust below the market minimum", () => {
+  it("names a sub-minimum residual, labels the leg, and leaves nothing to close", async () => {
+    const venue = new SimulatedVenue("partial"), engine = new PairEngine(venue, new MemoryJournal());
+    const pair = { long: "HYPE", short: "SOL" } as const;
+    const plan = makePlan({ id: "dust", account: venue.account, mode: venue.mode, total: "50", slippageBps: 30, markets: simMarkets(pair), prices: simPrices(pair) });
+    await engine.open(plan);
+    const record = await engine.close(plan.id);
+    expect(record.status).toBe("incomplete");
+    expect(belowMinimum(record, 1)).toBe(true);
+    expect(closableLegs(record)).toEqual([]);
+    expect(legView(record, 1, false).status).toBe("Below minimum");
+    expect(pairAlert(record, false)?.title).toBe("This amount is below the market minimum. No order can close it.");
+    expect(pairAlert(record, false)?.body).toContain("SOL −0.08 (minimum 0.1");
+    expect(pairStatus(record, false).label).toBe("Residual exposure");
   });
 });

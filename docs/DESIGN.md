@@ -8,7 +8,7 @@ Full page structure, content, states and implementation priorities: [PairPilot w
 
 The user chooses final branding and visual direction in Claude Design. The current neutral UI is functional scaffolding.
 
-The core task is to express **long ETH / short BTC** as one pair, review both orders, execute, understand incomplete fills and close/reconcile. Keep the trade form and pair status prominent. A decorative dashboard is not the product.
+The core task is to express **one long/short pair** (ETH/BTC by default; SOL, HYPE presets and Swap direction) as one ticket, review both orders, execute, understand incomplete fills and close/reconcile. Keep the trade form and pair status prominent. A decorative dashboard is not the product.
 
 Preserve these states and behaviors:
 

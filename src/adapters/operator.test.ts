@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createWalletClient, decodeFunctionData, http, type Address, type Hex } from "viem";
+import { createWalletClient, decodeFunctionData, getAddress, http, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { DreamdexVenue } from "./dreamdex";
-import { assertPlacePermissions, encodePlaceOrderFor, IOC, OPERATOR_SELECTOR, operatorAbi, readPermissions, resolveExecution } from "./operator";
+import { assertPlacePermissions, encodePlaceOrderFor, findLinkedOwners, IOC, OPERATOR_SELECTOR, operatorAbi, readPermissions, resolveExecution } from "./operator";
 import { hidekiTestnet } from "../lib/network";
 
 // Synthetic addresses and a throwaway key; no network calls and no transactions.
@@ -65,5 +65,38 @@ describe("operator permissions", () => {
   it("passes when both legs may place for the owner", async () => {
     const permissions = await readPermissions(async () => true, legs);
     expect(() => assertPlacePermissions(resolveExecution(signer, owner), permissions)).not.toThrow();
+  });
+});
+
+describe("finding app wallets that linked a signer (synthetic registry logs)", () => {
+  const OWNER_A = "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5", OWNER_B = "0x00000000000000000000000000000000000000Bb";
+  const topic = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, "0")}`;
+  const grant = (owner: string, block: number, approved: boolean, selector: string = OPERATOR_SELECTOR.placeOrderFor, operator = signer) => ({
+    topics: ["0x10f879368ceb20c35c69315bc27ed8488f731570cf213d3e1bc2ad9b7749de28", topic(eth), topic(owner), topic(operator)],
+    data: `${selector}${"0".repeat(56)}${(approved ? 1 : 0).toString(16).padStart(64, "0")}`, blockNumber: `0x${block.toString(16)}`,
+  });
+  const chain = (logs: ReturnType<typeof grant>[]) => {
+    const calls: [bigint, bigint][] = [];
+    return { calls, getLogs: async (from: bigint, to: bigint) => { calls.push([from, to]); return logs.filter(l => BigInt(l.blockNumber) >= from && BigInt(l.blockNumber) <= to).sort((a, b) => Number(BigInt(a.blockNumber) - BigInt(b.blockNumber))); } };
+  };
+  it("finds the owner that granted placeOrderFor and stops scanning at the first hit", async () => {
+    const c = chain([grant(OWNER_A, 99_500, true), grant(OWNER_A, 99_501, true, OPERATOR_SELECTOR.cancelOrderFor)]);
+    const progress: bigint[] = [];
+    const r = await findLinkedOwners({ signer: getAddress(signer), head: 100_000n, getLogs: c.getLogs, parallel: 2, onProgress: n => progress.push(n) });
+    expect(r.owners).toEqual([{ owner: OWNER_A, latestBlock: 99_500n }]);
+    expect(c.calls).toEqual([[99_001n, 100_000n], [98_001n, 99_000n]]);
+    expect(progress).toEqual([2000n]);
+  });
+  it("lets a newer revoke win over an older grant, and ignores other operators and selectors", async () => {
+    const c = chain([grant(OWNER_A, 90_000, true), grant(OWNER_A, 95_000, false), grant(OWNER_B, 97_000, true, OPERATOR_SELECTOR.cancelOrderFor), grant(OWNER_B, 98_000, true, OPERATOR_SELECTOR.placeOrderFor, "0x00000000000000000000000000000000000000C3")]);
+    const r = await findLinkedOwners({ signer: getAddress(signer), head: 100_000n, getLogs: c.getLogs, maxWindows: 20 });
+    expect(r.owners).toEqual([]);
+    expect(r.scannedBlocks).toBe(20_000n);
+  });
+  it("reports nothing beyond the scan cap instead of guessing", async () => {
+    const c = chain([grant(OWNER_A, 10_000, true)]);
+    const r = await findLinkedOwners({ signer: getAddress(signer), head: 100_000n, getLogs: c.getLogs, maxWindows: 10, parallel: 4 });
+    expect(r.owners).toEqual([]);
+    expect(c.calls).toHaveLength(10);
   });
 });

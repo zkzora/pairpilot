@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { createPublicClient, http } from "viem";
 import { createMarkets, hidekiTestnet, NETWORK } from "../src/lib/network.js";
+import { ASSETS } from "../src/core/pairs.js";
 
 const report: Record<string, unknown> = { checkedAt: new Date().toISOString(), network: NETWORK, sdk: "0.32.1", signedTransactions: 0 };
 const markets = createMarkets();
@@ -12,7 +13,8 @@ try {
   report.block = String(await rpc.getBlockNumber());
   const all = await markets.client.listPerpMarkets();
   report.marketCount = all.length;
-  report.pair = await Promise.all(all.filter(m => m.baseSymbol === "ETH" || m.baseSymbol === "BTC").map(async m => {
+  // Every supported asset; pairs are formed from these at runtime.
+  report.assets = await Promise.all(all.filter(m => (ASSETS as readonly string[]).includes(m.baseSymbol ?? "")).map(async m => {
     const [state, system] = await Promise.all([markets.client.getPerpState(m.poolAddress), markets.client.getPerpSystemConfig(m.marginBank)]);
     return { symbol: m.baseSymbol, pool: m.poolAddress, marginBank: m.marginBank, baseDecimals: m.baseDecimals, quoteDecimals: m.quoteDecimals, tickSize: m.tickSize, lotSize: m.lotSize, minQuantity: m.minQuantity, mark: String(state.markPrice), priceable: state.markPriceOk, fundingRate: String(state.fundingRate), fundingWindowSec: state.fundingWindowSec, fullyWired: system.fullyWired };
   }));

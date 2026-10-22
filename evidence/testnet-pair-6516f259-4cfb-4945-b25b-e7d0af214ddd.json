@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "plan": {
+    "id": "6516f259-4cfb-4945-b25b-e7d0af214ddd",
+    "account": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+    "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+    "mode": "testnet",
+    "chainId": 50383,
+    "createdAt": 1792677364967,
+    "expiresAt": 1792677424967,
+    "slippageBps": 30,
+    "legs": [
+      {
+        "market": {
+          "symbol": "HYPE",
+          "pool": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+          "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+          "baseDecimals": 6,
+          "quoteDecimals": 18,
+          "tick": "10000000000000000",
+          "lot": "10000",
+          "minimum": "120000"
+        },
+        "side": "long",
+        "quantity": "310000",
+        "limitPrice": "78860000000000000000",
+        "referencePrice": "78630000000000000000"
+      },
+      {
+        "market": {
+          "symbol": "SOL",
+          "pool": "0xb483ec1fb34996638677c20ab087b16f1896fa53",
+          "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+          "baseDecimals": 9,
+          "quoteDecimals": 18,
+          "tick": "10000000000000000",
+          "lot": "10000000",
+          "minimum": "100000000"
+        },
+        "side": "short",
+        "quantity": "230000000",
+        "limitPrice": "104900000000000000000",
+        "referencePrice": "105210000000000000000"
+      }
+    ]
+  },
+  "status": "flat",
+  "positions": [
+    "0",
+    "0"
+  ],
+  "operations": [
+    {
+      "id": "6516f259-4cfb-4945-b25b-e7d0af214ddd:open:0",
+      "leg": 0,
+      "kind": "open",
+      "side": "long",
+      "quantity": "310000",
+      "limitPrice": "78860000000000000000",
+      "status": "confirmed",
+      "hash": "0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f",
+      "filled": "310000"
+    },
+    {
+      "id": "6516f259-4cfb-4945-b25b-e7d0af214ddd:open:1",
+      "leg": 1,
+      "kind": "open",
+      "side": "short",
+      "quantity": "230000000",
+      "limitPrice": "104900000000000000000",
+      "status": "confirmed",
+      "hash": "0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d",
+      "filled": "230000000"
+    },
+    {
+      "id": "6516f259-4cfb-4945-b25b-e7d0af214ddd:close:2",
+      "leg": 0,
+      "kind": "close",
+      "side": "short",
+      "quantity": "310000",
+      "limitPrice": "78250000000000000000",
+      "status": "confirmed",
+      "hash": "0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2",
+      "filled": "310000"
+    },
+    {
+      "id": "6516f259-4cfb-4945-b25b-e7d0af214ddd:close:3",
+      "leg": 1,
+      "kind": "close",
+      "side": "long",
+      "quantity": "230000000",
+      "limitPrice": "105370000000000000000",
+      "status": "confirmed",
+      "hash": "0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1",
+      "filled": "230000000"
+    }
+  ],
+  "events": [
+    {
+      "at": 1792677376165,
+      "message": "testnet: opening the pair with bounded IOC orders."
+    },
+    {
+      "at": 1792677377100,
+      "message": "Prepared open for HYPE."
+    },
+    {
+      "at": 1792677377607,
+      "message": "Broadcast 0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f."
+    },
+    {
+      "at": 1792677377710,
+      "message": "open HYPE: 310000 raw units filled."
+    },
+    {
+      "at": 1792677378951,
+      "message": "Prepared open for SOL."
+    },
+    {
+      "at": 1792677379356,
+      "message": "Broadcast 0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d."
+    },
+    {
+      "at": 1792677379458,
+      "message": "open SOL: 230000000 raw units filled."
+    },
+    {
+      "at": 1792677390923,
+      "message": "Positions reconciled against venue state. No orders sent."
+    },
+    {
+      "at": 1792677393397,
+      "message": "Close requested. Recovery may leave residual exposure if liquidity is unavailable."
+    },
+    {
+      "at": 1792677394881,
+      "message": "Prepared close for HYPE."
+    },
+    {
+      "at": 1792677395400,
+      "message": "Broadcast 0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2."
+    },
+    {
+      "at": 1792677395505,
+      "message": "close HYPE: 310000 raw units filled."
+    },
+    {
+      "at": 1792677396555,
+      "message": "Prepared close for SOL."
+    },
+    {
+      "at": 1792677396972,
+      "message": "Broadcast 0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1."
+    },
+    {
+      "at": 1792677397076,
+      "message": "close SOL: 230000000 raw units filled."
+    },
+    {
+      "at": 1792677399860,
+      "message": "Positions reconciled against venue state. No orders sent."
+    }
+  ]
+}

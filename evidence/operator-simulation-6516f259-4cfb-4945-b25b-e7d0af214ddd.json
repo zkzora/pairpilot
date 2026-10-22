@@ -1,0 +1,27 @@
+{
+  "mode": "testnet",
+  "kind": "read-only transaction simulation",
+  "at": "2026-10-22T13:56:11.666Z",
+  "planId": "6516f259-4cfb-4945-b25b-e7d0af214ddd",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "results": [
+    {
+      "leg": "HYPE",
+      "side": "long",
+      "quantity": "310000",
+      "limitPrice": "78860000000000000000",
+      "simulation": "ok"
+    },
+    {
+      "leg": "SOL",
+      "side": "short",
+      "quantity": "230000000",
+      "limitPrice": "104900000000000000000",
+      "simulation": "ok"
+    }
+  ],
+  "signedTransactions": 0,
+  "note": "Each leg simulated from the current flat state; leg 2 is re-checked live before it is sent."
+}

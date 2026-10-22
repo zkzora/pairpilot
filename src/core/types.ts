@@ -51,6 +51,17 @@ export interface PairRecord {
   operations: OrderIntent[];
   events: { at: number; message: string }[];
 }
+/** What a close would send, read before signing. Close orders are exactly these. */
+export interface CloseReview {
+  pairId: string;
+  createdAt: number;
+  expiresAt: number;
+  /** Positions the review was computed from; a close is refused if they changed. */
+  basis: [string, string];
+  orders: { leg: 0 | 1; side: Side; position: string; quantity: string; limitPrice: string }[];
+  /** Exposure the close cannot send, with the reason. */
+  residuals: { leg: 0 | 1; position: string; reason: string }[];
+}
 export interface OrderOutcome { hash: Hash; filled: string; reverted?: boolean }
 export interface Venue {
   mode: PairPlan["mode"];

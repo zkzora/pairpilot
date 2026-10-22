@@ -1,8 +1,10 @@
-import { absolute, signed, type Journal, type OrderIntent, type OrderOutcome, type PairPlan, type PairRecord, type Venue } from "./types";
+import { absolute, signed, type CloseReview, type Journal, type OrderIntent, type OrderOutcome, type PairPlan, type PairRecord, type Venue } from "./types";
 import { grid } from "./planner";
 
 /** Minimum preview lifetime left before the first open leg may be sent. */
 export const OPEN_HEADROOM_MS = 20_000;
+/** How long a reviewed close stays valid. Prices move; a stale bound is refused. */
+export const CLOSE_REVIEW_MS = 30_000;
 /** A transport error is deliberately NOT a rejection. Unknown sends never auto-retry. */
 export class RejectedOrder extends Error {}
 export class PairEngine {
@@ -119,7 +121,31 @@ export class PairEngine {
       return record;
     });
   }
-  async close(id: string): Promise<PairRecord> {
+  /** Read-only: the close orders and residuals for the current positions. Sends nothing. */
+  private async closeOrders(record: PairRecord, now: number): Promise<CloseReview> {
+    const review: CloseReview = { pairId: record.plan.id, createdAt: now, expiresAt: now + CLOSE_REVIEW_MS, basis: [...record.positions], orders: [], residuals: [] };
+    for (const leg of [0, 1] as const) {
+      const position = BigInt(record.positions[leg]);
+      if (position === 0n) continue;
+      const market = record.plan.legs[leg].market;
+      const quantity = grid(absolute(position), BigInt(market.lot));
+      if (quantity < BigInt(market.minimum)) { review.residuals.push({ leg, position: String(position), reason: "below the market minimum after lot rounding; manual action required" }); continue; }
+      const side = position > 0n ? "short" : "long";
+      review.orders.push({ leg, side, position: String(position), quantity: String(quantity), limitPrice: String(await this.venue.closePrice(record.plan, leg, side)) });
+      if (quantity !== absolute(position)) review.residuals.push({ leg, position: String(position - signed(side === "short" ? "long" : "short", quantity)), reason: "lot rounding leaves this remainder open" });
+    }
+    return review;
+  }
+  async reviewClose(id: string): Promise<CloseReview> {
+    const record = await this.journal.read(id);
+    if (!record) throw new Error("Pair journal not found.");
+    await this.checkIdentity(record.plan);
+    if (record.operations.some(o => ["submitting", "unknown"].includes(o.status))) throw new Error("Resolve unknown transactions before closing; another order could increase exposure.");
+    await this.checkPositions(record);
+    return this.closeOrders(record, Date.now());
+  }
+  /** Close filled exposure. With a review, sends exactly the reviewed quantities and price bounds. */
+  async close(id: string, review?: CloseReview): Promise<PairRecord> {
     const found = await this.journal.read(id);
     if (!found) throw new Error("Pair journal not found.");
     return this.journal.exclusive(found.plan.account, async () => {
@@ -127,19 +153,19 @@ export class PairEngine {
       await this.checkIdentity(record.plan);
       if (record.operations.some(o => ["submitting", "unknown"].includes(o.status))) throw new Error("Resolve unknown transactions before closing; another order could increase exposure.");
       await this.checkPositions(record);
+      if (review) {
+        if (review.pairId !== id) throw new Error("Close review belongs to another pair. No order sent.");
+        if (Date.now() > review.expiresAt) throw new Error("Close review expired. Review the close again; no order sent.");
+        if (review.basis.some((p, i) => p !== record.positions[i])) throw new Error("Positions changed since the close review. Review again; no order sent.");
+      }
       if (record.positions.every(p => p === "0")) { record.status = "flat"; await this.save(record); return record; }
       record.status = "closing";
       await this.save(record, "Close requested. Recovery may leave residual exposure if liquidity is unavailable.");
       try {
-        for (const leg of [0, 1] as const) {
-          const position = BigInt(record.positions[leg]);
-          if (position === 0n) continue;
-          const market = record.plan.legs[leg].market;
-          const quantity = grid(absolute(position), BigInt(market.lot));
-          if (quantity < BigInt(market.minimum)) { await this.save(record, `${market.symbol}: residual is below minimum size; manual action required.`); continue; }
-          const side = position > 0n ? "short" : "long";
-          const price = await this.venue.closePrice(record.plan, leg, side);
-          await this.submit(record, { id: `${id}:close:${record.operations.length}`, leg, kind: "close", side, quantity: String(quantity), limitPrice: String(price), status: "submitting" });
+        const plan = review ?? await this.closeOrders(record, Date.now());
+        for (const residual of plan.residuals) await this.save(record, `${record.plan.legs[residual.leg].market.symbol}: ${residual.reason}.`);
+        for (const order of plan.orders) {
+          await this.submit(record, { id: `${id}:close:${record.operations.length}`, leg: order.leg, kind: "close", side: order.side, quantity: order.quantity, limitPrice: order.limitPrice, status: "submitting" });
           if (this.needsAttention(record)) break;
         }
         if (!this.needsAttention(record)) record.status = record.positions.every(p => p === "0") ? "flat" : "incomplete";

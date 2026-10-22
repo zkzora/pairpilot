@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   // Deterministic UI failure case, not a claim about the actual sponsor API.
-  await page.route("**/api/markets", route => route.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ error: "Injected offline condition for UI testing." }) }));
+  await page.route(/\/api\/markets(\?|$)/, route => route.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ error: "Injected offline condition for UI testing." }) }));
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Preview pair", exact: true })).toBeEnabled();
 });
@@ -16,6 +16,7 @@ test("opens and closes a simulated pair; exports a labeled receipt", async ({ pa
   await page.getByRole("button", { name: "Export JSON" }).click();
   expect((await download).suggestedFilename()).toContain("simulation");
   await page.getByRole("button", { name: "Close pair", exact: true }).click();
+  await page.getByRole("button", { name: "Execute simulated close", exact: true }).click();
   await expect(page.getByText("Flat", { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -27,6 +28,7 @@ test("keeps incomplete execution visible then recovers", async ({ page }) => {
   await expect(page.getByText("Incomplete", { exact: true })).toBeVisible();
   await expect(page.locator(".chip", { hasText: "No fill" })).toBeVisible();
   await page.getByRole("button", { name: "Close remaining exposure", exact: true }).click();
+  await page.getByRole("button", { name: "Execute simulated close", exact: true }).click();
   await expect(page.getByText("Flat", { exact: true })).toBeVisible();
 });
 
@@ -48,6 +50,7 @@ test("shows unresolved recovery rather than reporting flat", async ({ page }) =>
   await page.getByRole("button", { name: "Preview pair", exact: true }).click();
   await page.getByRole("button", { name: "Execute simulation", exact: true }).click();
   await page.getByRole("button", { name: "Close remaining exposure", exact: true }).click();
+  await page.getByRole("button", { name: "Execute simulated close", exact: true }).click();
   await expect(page.getByText("Residual exposure", { exact: true })).toBeVisible();
   await expect(page.getByText("Flat", { exact: true })).toHaveCount(0);
 });

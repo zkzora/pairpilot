@@ -1,12 +1,14 @@
 import { formatUnits } from "viem";
 import type { LiveSnapshot } from "../../src/adapters/dreamdex";
-import { SIM_MARKETS, SIM_PRICES } from "../../src/adapters/simulated";
+import { simMarkets, simPrices } from "../../src/adapters/simulated";
+import { PAIR_PRESETS, pairLabel, presetOf, type PairSelection } from "../../src/core/pairs";
 import { OPEN_HEADROOM_MS } from "../../src/core/engine";
-import type { PairPlan, PairRecord } from "../../src/core/types";
+import type { CloseReview, PairPlan, PairRecord } from "../../src/core/types";
+import { CloseReviewPanel } from "./close";
 import { NETWORK } from "../../src/lib/network";
 import { Logo } from "./logo";
 import { signed } from "../../src/core/types";
-import { base, legNotional, legView, limitText, pairAlert, pairStatus, pairSubtitle, percent, quote, shortHash, signedBase, totalNotional, type Alert, type LegView, type Tone } from "./view";
+import { base, closableLegs, humanEvent, legNotional, legView, limitText, pairAlert, pairStatus, pairSubtitle, percent, quote, shortHash, signedBase, totalNotional, type Alert, type LegView, type Tone } from "./view";
 
 export { Logo };
 export type Tab = "trade" | "activity" | "setup";
@@ -27,9 +29,9 @@ export function ModeSwitch({ mode, disabled, onChange }: { mode: Mode; disabled:
   </div>;
 }
 
-export function MarketStrip({ mode, snapshot, error, loading, disabled, onRefresh }: { mode: Mode; snapshot: LiveSnapshot | null; error: string; loading: boolean; disabled: boolean; onRefresh: () => void }) {
+export function MarketStrip({ mode, pair, snapshot, error, loading, disabled, onRefresh }: { mode: Mode; pair: PairSelection; snapshot: LiveSnapshot | null; error: string; loading: boolean; disabled: boolean; onRefresh: () => void }) {
   if (mode === "simulation") return <section className="strip sim-strip" aria-label="Simulated prices">
-    {SIM_MARKETS.map((m, i) => <div key={m.symbol}><div className="stat"><span className="k">{m.symbol}-PERP · Fixed price</span><span className="big">{quote(SIM_PRICES[i], m.quoteDecimals)}</span></div><div className="stat extra"><span className="k">Fills</span><span className="v">Simulated</span></div></div>)}
+    {simMarkets(pair).map((m, i) => <div key={m.symbol}><div className="stat"><span className="k">{m.symbol}-PERP · Fixed price</span><span className="big">{quote(simPrices(pair)[i], m.quoteDecimals)}</span></div><div className="stat extra"><span className="k">Fills</span><span className="v">Simulated</span></div></div>)}
     <div className="meta"><div><span className="tag t-sim">FIXED SIMULATED PRICES</span><span className="muted" style={{ fontSize: 12 }}>Not live market data</span></div></div>
   </section>;
   return <section className="strip" aria-label="Testnet market snapshot" aria-busy={loading}>
@@ -48,14 +50,14 @@ export function MarketStrip({ mode, snapshot, error, loading, disabled, onRefres
   </section>;
 }
 
-const exampleLegs = [
-  { side: "LONG" as const, market: "ETH-PERP", seq: "Order 1", desc: "Buys about half the notional with an IOC price limit." },
-  { side: "SHORT" as const, market: "BTC-PERP", seq: "Order 2", desc: "Sells the other half after order 1 fills completely. It can fill differently." },
+const exampleLegs = (pair: PairSelection) => [
+  { side: "LONG" as const, market: `${pair.long}-PERP`, seq: "Order 1", desc: "Buys about half the notional with an IOC price limit." },
+  { side: "SHORT" as const, market: `${pair.short}-PERP`, seq: "Order 2", desc: "Sells the other half after order 1 fills completely. It can fill differently." },
 ];
-export function Hero() {
+export function Hero({ pair }: { pair: PairSelection }) {
   return <div className="panel-body" style={{ gap: 24 }}>
-    <div className="hero"><span className="eyebrow">No active pair</span><h1>Trade the pair. Track every leg.</h1><p>Long ETH and short BTC in one plan. See actual fills and manage unfinished execution.</p></div>
-    <div className="cards">{exampleLegs.map(x => <div className="card" key={x.market} style={{ flexBasis: 220, gap: 10 }}><div className="card-head"><SideTag side={x.side} /><span className="market">{x.market}</span><span className="end">{x.seq}</span></div><span className="muted pretty" style={{ fontSize: 13 }}>{x.desc}</span></div>)}</div>
+    <div className="hero"><span className="eyebrow">No active pair</span><h1>Trade the pair. Track every leg.</h1><p>Long {pair.long} and short {pair.short} in one plan. See actual fills and manage unfinished execution.</p></div>
+    <div className="cards">{exampleLegs(pair).map(x => <div className="card" key={x.market} style={{ flexBasis: 220, gap: 10 }}><div className="card-head"><SideTag side={x.side} /><span className="market">{x.market}</span><span className="end">{x.seq}</span></div><span className="muted pretty" style={{ fontSize: 13 }}>{x.desc}</span></div>)}</div>
     <details className="how-wrap">
       <summary>How it works</summary>
       <div className="how">{[["1", "Review", "Check both legs, quantities and price limits. Nothing is signed."], ["2", "Execute", "Two IOC orders are sent one after another. One can fill without the other."], ["3", "Reconcile & close", "Read back actual fills and positions, then close what is still open."]].map(([n, t, b]) => <div key={n}><span className="num">{n}</span><div><span className="t">{t}</span><span className="b">{b}</span></div></div>)}</div>
@@ -63,7 +65,7 @@ export function Hero() {
   </div>;
 }
 
-export function Review({ plan, now, mode, account, scenario, dedicated, busy, onAck, onEdit, onRefresh, onSign }: { plan: PairPlan; now: number; mode: Mode; account: string; scenario: string; dedicated: boolean; busy: boolean; onAck: (v: boolean) => void; onEdit: () => void; onRefresh: () => void; onSign: () => void }) {
+export function Review({ plan, now, mode, accountLabel, scenario, dedicated, busy, onAck, onEdit, onRefresh, onSign }: { plan: PairPlan; now: number; mode: Mode; accountLabel: string; scenario: string; dedicated: boolean; busy: boolean; onAck: (v: boolean) => void; onEdit: () => void; onRefresh: () => void; onSign: () => void }) {
   const sim = mode === "simulation", remaining = Math.max(0, plan.expiresAt - now), low = remaining < OPEN_HEADROOM_MS;
   const total = totalNotional(plan), quoteDecimals = plan.legs[0].market.quoteDecimals;
   const seconds = Math.ceil(remaining / 1000);
@@ -89,12 +91,12 @@ export function Review({ plan, now, mode, account, scenario, dedicated, busy, on
       </div>;
     })}</div>
     <div className="facts">
-      {[["Account", sim ? "Simulator · no wallet" : `${shortHash(account)} · browser wallet`], ["Network", sim ? "Local simulator" : `${NETWORK.name.split(" / ")[0]} · chain ${NETWORK.id}`],
-        ["Total notional", `${quote(total, quoteDecimals)} USDso at limits`], ["Allocation after rounding", `${percent(legNotional(plan.legs[0]), total)}% ETH / ${percent(legNotional(plan.legs[1]), total)}% BTC`],
-        ["Execution", "Sequential: ETH long, then BTC short"], sim ? ["Scenario", scenario] : ["Perps margin", "Checked now, re-checked before each leg"]].map(([k, v]) => <div key={k}><span className="k">{k}</span><span className="v">{v}</span></div>)}
+      {[["Account", sim ? "Simulator · no wallet" : accountLabel], ["Network", sim ? "Local simulator" : `${NETWORK.name.split(" / ")[0]} · chain ${NETWORK.id}`],
+        ["Total notional", `${quote(total, quoteDecimals)} USDso at limits`], ["Allocation after rounding", `${percent(legNotional(plan.legs[0]), total)}% ${plan.legs[0].market.symbol} / ${percent(legNotional(plan.legs[1]), total)}% ${plan.legs[1].market.symbol}`],
+        ["Execution", `Sequential: ${plan.legs[0].market.symbol} long, then ${plan.legs[1].market.symbol} short`], sim ? ["Scenario", scenario] : ["Perps margin", "Checked now, re-checked before each leg"]].map(([k, v]) => <div key={k}><span className="k">{k}</span><span className="v">{v}</span></div>)}
     </div>
     <div className="alert warn plain"><span className="glyph" aria-hidden="true">!</span><div><span className="body pretty">Orders are sent one after another, not atomically. One leg can fill without the other. If that happens, you choose how to close the remaining exposure. Equal notional is not beta neutral or a guaranteed hedge.</span></div></div>
-    {!sim && <label className="ack"><input type="checkbox" checked={dedicated} onChange={e => onAck(e.target.checked)} /><span className="pretty">This account is used only for PairPilot. No bot, resting order, stop or manual trade is active on it. I understand closing uses client-side position checks, not a contract-enforced reduce-only flag.</span></label>}
+    {!sim && <label className="ack"><input type="checkbox" checked={dedicated} onChange={e => onAck(e.target.checked)} /><span className="pretty">The trading account is used only for PairPilot during this pair. No bot, resting order, stop or manual trade is active on it. I understand closing uses client-side position checks, not a contract-enforced reduce-only flag.</span></label>}
     {low && <div className="c-warn" style={{ fontSize: 13 }} role="status">{remaining === 0 ? "Preview expired." : `Less than ${OPEN_HEADROOM_MS / 1000} seconds left.`} Refresh the preview so both orders have time to land.</div>}
     <div className="actions end">
       <button type="button" className="btn" disabled={busy} onClick={onEdit}>Edit</button>
@@ -121,10 +123,14 @@ function LegCard({ view, mode }: { view: LegView; mode: Mode }) {
   </div>;
 }
 
-export function Post({ record, busy, actionsDisabled, onReconcile, onClose, onNew, onExport }: { record: PairRecord; busy: boolean; actionsDisabled: boolean; onReconcile: () => void; onClose: () => void; onNew: () => void; onExport: () => void }) {
+export function Post({ record, busy, actionsDisabled, signerMismatch, closeReview, now, onReconcile, onClose, onConfirmClose, onCancelClose, onNew, onExport }: { record: PairRecord; busy: boolean; actionsDisabled: boolean; signerMismatch: string; closeReview: CloseReview | null; now: number; onReconcile: () => void; onClose: () => void; onConfirmClose: () => void; onCancelClose: () => void; onNew: () => void; onExport: () => void }) {
+  const signer = record.plan.signer ?? record.plan.account, linked = signer.toLowerCase() !== record.plan.account.toLowerCase();
+  actionsDisabled ||= Boolean(signerMismatch);
   const mode = record.plan.mode, status = pairStatus(record, busy), alert = pairAlert(record, busy);
   const unresolved = record.operations.some(o => o.status === "submitting" || o.status === "unknown");
   const needsReconcile = record.status === "attention" || unresolved || (!busy && (record.status === "opening" || record.status === "closing"));
+  // Every remaining leg is under its market minimum: no close order exists to send.
+  const onlyDust = record.status === "incomplete" && closableLegs(record).length === 0;
   const last = record.events.at(-1);
   return <div className="panel-body" style={{ gap: 18 }}>
     <div className="head-row">
@@ -132,26 +138,32 @@ export function Post({ record, busy, actionsDisabled, onReconcile, onClose, onNe
       <span className={`tag ${mode === "simulation" ? "t-sim" : "t-net"}`}>{mode === "simulation" ? "SIMULATION" : "TESTNET"}</span>
       {last && <span className="end muted" style={{ fontSize: 12 }}>Updated {time(last.at)}</span>}
     </div>
+    {linked && <span className="muted" style={{ fontSize: 12 }}>Linked wallet · owner <span className="mono" title={record.plan.account}>{shortHash(record.plan.account)}</span> holds the positions · signer <span className="mono" title={signer}>{shortHash(signer)}</span> signs</span>}
     <div className="head-row" style={{ gap: "8px 12px" }}><span className={`overall c-${status.tone}`} aria-live="polite">{status.label}</span><span className="muted">{pairSubtitle(record, busy)}</span></div>
+    {signerMismatch && <Callout alert={{ tone: "bad", title: "This pair belongs to another signer.", body: signerMismatch }} live />}
     {alert && <Callout alert={alert} live />}
     <div className="cards">{([0, 1] as const).map(i => <LegCard key={i} view={legView(record, i, busy)} mode={mode} />)}</div>
+    {closeReview ? <CloseReviewPanel review={closeReview} record={record} now={now} busy={actionsDisabled} onCancel={onCancelClose} onConfirm={onConfirmClose} onRefresh={onClose} /> : <>
     <div className="actions">
       {record.status === "flat"
         ? <button type="button" className="btn primary" disabled={actionsDisabled} onClick={onNew}>New pair</button>
-        : <button type="button" className={`btn ${needsReconcile ? "" : "primary"}`} disabled={actionsDisabled || needsReconcile} onClick={onClose}>{record.status === "paired" ? "Close pair" : "Close remaining exposure"}</button>}
+        : <button type="button" className={`btn ${needsReconcile || onlyDust ? "" : "primary"}`} disabled={actionsDisabled || needsReconcile || onlyDust} onClick={onClose}>{record.status === "paired" ? "Close pair" : "Close remaining exposure"}</button>}
       {record.status !== "flat" && <button type="button" className={`btn ${needsReconcile ? "primary" : ""}`} disabled={actionsDisabled} onClick={onReconcile}>Reconcile</button>}
       <button type="button" className="btn" disabled={busy} onClick={onExport}>Export JSON</button>
     </div>
     <div className="notes">
       {record.status !== "flat" && <span>Reconcile reads receipts and positions. Sends no orders.</span>}
       {needsReconcile && <span>There is no retry button: resending could open a duplicate order.</span>}
-      {record.status !== "flat" && <span>{mode === "simulation" ? "Simulated closes use fixed prices and the selected scenario." : "Close uses client-side checks, not contract-enforced reduce-only. External trades or liquidation can still change positions."}</span>}
+      {onlyDust && <span>Close is disabled: the remaining amount is below the market minimum, so there is no order to send.</span>}
+      {record.status !== "flat" && <span>Close opens a review of the actual remaining quantities and price bounds first. {mode === "simulation" ? "Simulated closes use fixed prices and the selected scenario." : "Reduce-only is a client-side check, not enforced on-chain."}</span>}
     </div>
+    </>}
   </div>;
 }
 
 export function Ticket(props: {
-  mode: Mode; plan: PairPlan | null; record: PairRecord | null; busy: string; mounted: boolean; account: string;
+  mode: Mode; plan: PairPlan | null; record: PairRecord | null; busy: string; mounted: boolean; previewBlock: string;
+  pair: PairSelection; onPair: (p: PairSelection) => void;
   total: string; slippage: string; scenario: string; scenarios: { value: string; label: string }[];
   onTotal: (v: string) => void; onSlippage: (v: string) => void; onScenario: (v: string) => void; onPreview: () => void; onEdit: () => void; onReset: () => void;
 }) {
@@ -164,7 +176,7 @@ export function Ticket(props: {
   const slip = Number(slippage);
   const legs = (record?.plan ?? plan)?.legs;
   return <aside className="ticket" aria-label="Pair ticket">
-    <div className="ticket-head"><h2 className="sub">Pair ticket</h2><span className="end">{reviewing ? "Locked while reviewing" : locked ? "Pair active" : "Long ETH / Short BTC"}</span></div>
+    <div className="ticket-head"><h2 className="sub">Pair ticket</h2><span className="end">{reviewing ? "Locked while reviewing" : locked && legs ? `Pair active · ${legs[0].market.symbol}/${legs[1].market.symbol}` : `Long ${props.pair.long} / Short ${props.pair.short}`}</span></div>
     {locked && legs ? <>
       <div className="box">One active pair per account. Close or resolve the current pair before opening another.</div>
       <div className="ticket-group" aria-label="Current exposure">
@@ -179,25 +191,28 @@ export function Ticket(props: {
       </div>
       <button type="button" className="btn primary full" disabled>Preview pair</button>
     </> : <form style={{ display: "contents" }} onSubmit={e => { e.preventDefault(); props.onPreview(); }}>
-      <div className="legs-fixed"><span className="hint">Legs · fixed in v0<span className="phone-only"> · ≈ 50% each</span></span>{exampleLegs.map(x => <div key={x.market}><SideTag side={x.side} /><span style={{ fontWeight: 500 }}>{x.market}</span><span className="end">≈ 50%</span></div>)}</div>
-      {sim && <div className="field"><label htmlFor="scenario">Failure scenario</label><div className="input"><select id="scenario" value={props.scenario} disabled={Boolean(busy) || reviewing} onChange={e => props.onScenario(e.target.value)}>{props.scenarios.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}</select></div><span className="hint">Injected locally. Simulated failures are not venue findings.</span></div>}
+      <PairPicker pair={props.pair} disabled={Boolean(busy)} onPair={props.onPair} />
+      {sim && <div className="field"><label htmlFor="scenario">Failure scenario</label><div className="input"><select id="scenario" value={props.scenario} disabled={Boolean(busy) || reviewing} onChange={e => props.onScenario(e.target.value)}>{props.scenarios.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}</select></div><span className="hint">Injected locally; not venue findings.</span></div>}
+      <div className="field-row">
       <div className="field"><label htmlFor="total">Total notional</label>
         <div className={`input ${over || invalid ? "invalid" : ""}`}><input id="total" value={total} onChange={e => props.onTotal(e.target.value)} disabled={Boolean(busy) || reviewing} type="text" inputMode="decimal" autoComplete="off" required aria-describedby="total-help" aria-invalid={over || invalid} /><span className="unit">USDso</span></div>
-        <span id="total-help" className={`hint ${over || invalid ? "bad" : ""}`}>{over ? "Testnet limit is 200 USDso total notional." : `Total position value across both legs, not collateral.${sim ? "" : " Testnet max 200 USDso."}`}</span>
+        <span id="total-help" className={`hint ${over || invalid ? "bad" : ""}`}>{over ? "Testnet max is 200 USDso." : sim ? "Both legs, not collateral." : "Both legs, not collateral. Max 200."}</span>
       </div>
       <div className="field"><label htmlFor="slippage">Slippage tolerance</label>
-        <div className="input"><input id="slippage" value={slippage} onChange={e => props.onSlippage(e.target.value)} disabled={Boolean(busy) || reviewing} type="text" inputMode="numeric" autoComplete="off" required aria-describedby="slippage-help" /><span className="unit">bps = {Number.isFinite(slip) ? (slip / 100).toFixed(2) : "—"}%</span></div>
-        <span id="slippage-help" className="hint">Range 1–100 bps. Sets the price limit on each IOC order.</span>
+        <div className="input"><input id="slippage" value={slippage} onChange={e => props.onSlippage(e.target.value)} disabled={Boolean(busy) || reviewing} type="text" inputMode="numeric" autoComplete="off" required aria-describedby="slippage-help" /><span className="unit">bps</span></div>
+        <span id="slippage-help" className="hint">{Number.isFinite(slip) ? `${(slip / 100).toFixed(2)}%` : "—"} · 1–100 bps per IOC limit.</span>
       </div>
-      <div className="ticket-facts">
+      </div>
+      <details className="ticket-facts">
+        <summary>Execution rules</summary>
         <div className="line"><span className="k">Execution</span><span className="v">IOC with price limit · sequential</span></div>
         <div className="line"><span className="k">Recovery</span><span className="v">Explicit unwind · you start it</span></div>
         <div className="line"><span className="k">Perps margin</span><span className="v muted">{sim ? "Not used" : "Checked at preview"}</span></div>
-      </div>
+      </details>
       {reviewing ? <button type="button" className="btn full" disabled={Boolean(busy)} onClick={props.onEdit}>Edit ticket</button>
-        : <button type="submit" className="btn primary full" disabled={!props.mounted || Boolean(busy) || over || invalid || (!sim && !props.account)} aria-busy={Boolean(busy)}>Preview pair</button>}
-      <span className="center-hint">{reviewing ? "Inputs stay fixed until you edit" : !sim && !props.account ? "Connect a wallet to preview" : "Preview does not sign anything"}</span>
-      {sim && <button type="button" className="btn full" disabled={Boolean(busy)} onClick={props.onReset}>Reset simulation</button>}
+        : <button type="submit" className="btn primary full" disabled={!props.mounted || Boolean(busy) || over || invalid || Boolean(props.previewBlock)} aria-busy={Boolean(busy)}>Preview pair</button>}
+      <span className="center-hint">{reviewing ? "Inputs stay fixed until you edit" : props.previewBlock || "Preview does not sign anything"}</span>
+      {sim && <button type="button" className="link-btn reset-link" disabled={Boolean(busy)} onClick={props.onReset}>Reset simulation</button>}
     </form>}
   </aside>;
 }
@@ -233,7 +248,7 @@ export function Activity({ mode, account, records, activeId, filter, selectedId,
       : <div className="work">
         <div className="list">
           {shown.map(r => { const s = pairStatus(r, false); return <button key={r.plan.id} type="button" aria-current={r.plan.id === sel?.plan.id} onClick={() => onSelect(r.plan.id)}>
-            <div><span style={{ fontWeight: 500 }}>Long ETH / Short BTC</span><span className="meta">{new Date(r.plan.createdAt).toLocaleString()} · <span className="mono">{r.plan.id.slice(0, 8)}</span> · {r.operations.length} operations</span></div>
+            <div><span style={{ fontWeight: 500 }}>Long {r.plan.legs[0].market.symbol} / Short {r.plan.legs[1].market.symbol}</span><span className="meta">{new Date(r.plan.createdAt).toLocaleString()} · <span className="mono">{r.plan.id.slice(0, 8)}</span> · {r.operations.length} operations</span></div>
             <span className={`chip t-${s.tone}`}>{s.label}</span></button>; })}
           {shown.length === 0 && <div className="none">No pairs match this filter.</div>}
         </div>
@@ -252,13 +267,33 @@ function ActivityDetail({ record, active, onResolve, onExport }: { record: PairR
         <span className="r" role="cell">{base(leg.quantity, leg)}</span><span className="r" role="cell">{rows[1].v.split(" ")[0]}</span><span className="r" role="cell">{rows.find(r => r.k === "Open now" || r.k === "Last recorded")!.v.split(" ")[0]}</span></div>; })}
     </div>
     <div className="timeline"><span className="tl-title">Timeline</span>
-      {record.events.map((e, i) => <div className="ev" key={i}><div className="rail"><span className="d" /><span className="l" /></div><div><span>{e.message}</span><time>{time(e.at)}</time></div></div>)}
+      {record.events.map((e, i) => <div className="ev" key={i}><div className="rail"><span className="d" /><span className="l" /></div><div><span>{humanEvent(e.message, record.plan)}</span><time>{time(e.at)}</time></div></div>)}
     </div>
     {testnet && record.operations.some(o => o.hash) && <div className="notes">{record.operations.filter(o => o.hash).map(o => <a key={o.id} href={`${NETWORK.explorer}/tx/${o.hash}`} target="_blank" rel="noreferrer">{o.kind} {record.plan.legs[o.leg].market.symbol}: {shortHash(o.hash!)} ↗</a>)}</div>}
     {!active && record.status !== "flat" && <span className="leg-note">This record is no longer the active pair for this account{record.plan.mode === "simulation" ? " (the simulator was reset)" : ""}. It is kept as history.</span>}
     <div className="actions">
       {active && record.status !== "flat" && <button type="button" className="btn primary" onClick={onResolve}>Resolve in Trade</button>}
       <button type="button" className="btn" onClick={onExport}>Export JSON</button>
+    </div>
+  </div>;
+}
+
+/** Pair preset plus direction. Presets go first asset LONG; Swap reverses. Allocation stays about 50/50. */
+function PairPicker({ pair, disabled, onPair }: { pair: PairSelection; disabled: boolean; onPair: (p: PairSelection) => void }) {
+  const { index, reversed } = presetOf(pair);
+  return <div className="pair-picker">
+    <div className="pair-row">
+      <div className="field" style={{ flex: 1, minWidth: 0 }}>
+        <label htmlFor="pair">Pair</label>
+        <div className="input"><select id="pair" value={index} disabled={disabled} onChange={e => onPair(PAIR_PRESETS[Number(e.target.value)])}>
+          {PAIR_PRESETS.map((p, i) => <option key={pairLabel(p)} value={i}>{i === index && reversed ? `${p.short} / ${p.long} (swapped)` : `${p.long} / ${p.short}`}</option>)}
+        </select></div>
+      </div>
+      <button type="button" className="btn sm swap" disabled={disabled} onClick={() => onPair({ long: pair.short, short: pair.long })} title="Swap which asset is long and which is short">⇄ Swap direction</button>
+    </div>
+    <div className="legs-fixed" aria-label="Selected legs">
+      <span className="hint">First asset long, second short · ≈ 50% each</span>
+      {exampleLegs(pair).map(x => <div key={x.market}><SideTag side={x.side} /><span style={{ fontWeight: 500 }}>{x.market}</span></div>)}
     </div>
   </div>;
 }

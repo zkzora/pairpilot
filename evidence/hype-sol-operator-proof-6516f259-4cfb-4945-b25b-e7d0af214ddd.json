@@ -1,0 +1,127 @@
+{
+  "mode": "testnet",
+  "kind": "read-only verification: hype-sol-operator",
+  "verifiedAt": "2026-10-22T13:57:20.269Z",
+  "chainId": 50383,
+  "planId": "6516f259-4cfb-4945-b25b-e7d0af214ddd",
+  "journal": "evidence/testnet-pair-6516f259-4cfb-4945-b25b-e7d0af214ddd.json",
+  "pair": "HYPE/SOL",
+  "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+  "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50",
+  "execution": "operator",
+  "journalStatus": "flat",
+  "events": [
+    "testnet: opening the pair with bounded IOC orders.",
+    "Prepared open for HYPE.",
+    "Broadcast 0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f.",
+    "open HYPE: 310000 raw units filled.",
+    "Prepared open for SOL.",
+    "Broadcast 0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d.",
+    "open SOL: 230000000 raw units filled.",
+    "Positions reconciled against venue state. No orders sent.",
+    "Close requested. Recovery may leave residual exposure if liquidity is unavailable.",
+    "Prepared close for HYPE.",
+    "Broadcast 0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2.",
+    "close HYPE: 310000 raw units filled.",
+    "Prepared close for SOL.",
+    "Broadcast 0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1.",
+    "close SOL: 230000000 raw units filled.",
+    "Positions reconciled against venue state. No orders sent."
+  ],
+  "transactions": [
+    {
+      "step": "open HYPE long",
+      "hash": "0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f",
+      "block": "30253639",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "78.86",
+      "filled": "0.31",
+      "avgFillPrice": "78.55",
+      "gasUsed": "2467468",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "open SOL short",
+      "hash": "0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d",
+      "block": "30253657",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xb483ec1fb34996638677c20ab087b16f1896fa53",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "104.9",
+      "filled": "0.23",
+      "avgFillPrice": "105.06",
+      "gasUsed": "2004494",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "close HYPE short",
+      "hash": "0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2",
+      "block": "30253817",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "78.25",
+      "filled": "0.31",
+      "avgFillPrice": "78.5",
+      "gasUsed": "1640203",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    },
+    {
+      "step": "close SOL long",
+      "hash": "0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1",
+      "explorer": "https://explorer.testnet.somnia.network/tokyo/tx/0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1",
+      "block": "30253833",
+      "from": "0x39f4aebeff78ab72c2fda3b34c7993608aa79c50",
+      "to": "0xb483ec1fb34996638677c20ab087b16f1896fa53",
+      "orderOwner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+      "limitPrice": "105.37",
+      "filled": "0.23",
+      "avgFillPrice": "105.076956521739130434",
+      "gasUsed": "1970681",
+      "checks": {
+        "success": true,
+        "sentBySigner": true,
+        "ownerInOrder": true,
+        "journalFillMatches": true,
+        "fillsInsideBound": true,
+        "explorerPage": true
+      }
+    }
+  ],
+  "finalReadback": {
+    "readAfterBlock": "30254255",
+    "HYPE owner position": "0",
+    "SOL owner position": "0",
+    "ownerEquityUSDso": "1000.047275529271780062",
+    "ownerActivePerpPools": 0,
+    "signerGasSTT": "4.896234476"
+  },
+  "ownerFlatInJournalMarkets": true,
+  "problems": []
+}

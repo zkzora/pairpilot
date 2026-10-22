@@ -1,4 +1,5 @@
 import { formatUnits } from "viem";
+import { grid } from "../../src/core/planner";
 import { absolute, type LegPlan, type OrderIntent, type PairPlan, type PairRecord } from "../../src/core/types";
 
 /** Display-only derivations from the durable journal. Execution decisions stay in src/core. */
@@ -16,6 +17,13 @@ export const signedBase = (raw: string | bigint, leg: LegPlan) => {
 export function quote(raw: string | bigint | null, decimals = 18) {
   return raw === null ? "Unavailable" : Number(formatUnits(BigInt(raw), decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
+/** An open leg no order can close: after lot rounding it is under the market minimum. */
+export function belowMinimum(record: PairRecord, index: 0 | 1) {
+  const position = absolute(BigInt(record.positions[index])), market = record.plan.legs[index].market;
+  return position !== 0n && grid(position, BigInt(market.lot)) < BigInt(market.minimum);
+}
+/** Open legs that a close order can actually reduce. */
+export const closableLegs = (record: PairRecord) => ([0, 1] as const).filter(i => record.positions[i] !== "0" && !belowMinimum(record, i));
 export const shortHash = (hash: string) => hash.length > 14 ? `${hash.slice(0, 6)}…${hash.slice(-4)}` : hash;
 export const limitText = (side: OrderIntent["side"], price: string, leg: LegPlan) => `${side === "long" ? "≤" : "≥"} ${quote(price, leg.market.quoteDecimals)}`;
 /** Worst-case quote value at the order's limit; the same bound assertReady caps. */
@@ -87,6 +95,10 @@ export function legView(record: PairRecord, index: 0 | 1, busy: boolean): LegVie
     if (!complete && last.kind === "close") view.note = `Close filled ${base(amount, leg)} of ${base(last.quantity, leg)} ${symbol} within its limit. The rest stays open.`;
   }
   view.hash = last?.hash;
+  if (belowMinimum(record, index) && settled(record, busy)) {
+    [view.status, view.tone] = ["Below minimum", "warn"];
+    view.note = `${signedBase(position, leg)} ${symbol} is under the ${base(leg.market.minimum, leg)} ${symbol} market minimum. No order can close it; it stays open and visible.`;
+  }
 
   const recorded = settled(record, busy) && record.status !== "attention";
   const exposed = (record.status === "incomplete" || !recorded) && position !== 0n;
@@ -118,6 +130,11 @@ export function pairAlert(record: PairRecord, busy: boolean): Alert | null {
   if (pending) return { tone: "warn", title: "A transaction outcome is unknown. Reconcile before sending another order.", body: `The ${sideWord(legs[pending.leg])} ${pending.kind} was ${sim ? "sent by the simulator with synthetic hash" : "broadcast as"} ${shortHash(pending.hash!)}, but no receipt was read. Opening and closing are blocked until it is reconciled.` };
   if (record.status === "attention" || !settled(record, busy)) return { tone: "warn", title: "Positions need checking before another order.", body: record.events.at(-1)?.message ?? "Reconcile reads receipts and positions." };
   if (record.status === "incomplete") {
+    const dust = ([0, 1] as const).filter(i => belowMinimum(record, i));
+    if (dust.length && closableLegs(record).length === 0) {
+      const parts = dust.map(i => { const leg = legs[i], value = BigInt(record.positions[i]); return `${leg.market.symbol} ${signedBase(value, leg)} (minimum ${base(leg.market.minimum, leg)}, about ${quote(absolute(value) * BigInt(leg.referencePrice) / 10n ** BigInt(leg.market.baseDecimals), leg.market.quoteDecimals)} USDso)`; });
+      return { tone: "warn", title: `${parts.length > 1 ? "These amounts are" : "This amount is"} below the market minimum. No order can close ${parts.length > 1 ? "them" : "it"}.`, body: `${parts.join(" · ")} stays open. The venue rejects orders smaller than its minimum, so PairPilot cannot send one; the exposure is shown here, never reported as flat.` };
+    }
     const open = legs.map((leg, i) => ({ leg, value: BigInt(record.positions[i]) })).filter(x => x.value !== 0n).map(x => `${x.leg.market.symbol} ${signedBase(x.value, x.leg)} open`);
     const closing = record.operations.some(o => o.kind === "close");
     return { tone: "warn", title: closing ? "Closing may partially fill or fail. Remaining exposure stays open." : "One or both legs are incomplete. Review the open quantities below.", body: `${open.join(" · ") || "No open quantity"}. Unfilled IOC quantity was cancelled; nothing is resent automatically.` };
@@ -127,4 +144,14 @@ export function pairAlert(record: PairRecord, busy: boolean): Alert | null {
     return { tone: "ok", title: "Both positions were read back as zero.", body: `${sim ? "Read from the simulator" : "Read from chain"}${at ? ` at ${new Date(at).toLocaleTimeString()}` : ""}.` };
   }
   return null;
+}
+
+/** Activity timeline wording: human amounts and short hashes. Raw units stay in the journal. */
+export function humanEvent(message: string, plan: PairPlan): string {
+  return message
+    .replace(/\b(open|close) (\w+): (\d+) raw units filled/g, (_m, kind: string, symbol: string, raw: string) => {
+      const leg = plan.legs.find(l => l.market.symbol === symbol);
+      return leg ? `${kind} ${symbol}: ${formatUnits(BigInt(raw), leg.market.baseDecimals)} ${symbol} filled` : _m;
+    })
+    .replace(/0x[0-9a-fA-F]{64}/g, hash => shortHash(hash));
 }

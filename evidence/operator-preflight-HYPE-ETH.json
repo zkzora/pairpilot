@@ -1,0 +1,44 @@
+{
+  "mode": "testnet",
+  "kind": "read-only preflight",
+  "pair": "HYPE/ETH",
+  "checkedAt": "2026-10-22T13:58:12.558Z",
+  "chainId": 50383,
+  "execution": {
+    "mode": "operator",
+    "owner": "0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5",
+    "signer": "0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50"
+  },
+  "signerGasSTT": "4.896234476",
+  "ownerEquityUSDso": "1000.047275529271780062",
+  "ownerActivePerpPools": 0,
+  "ownerRestingOrders": 0,
+  "ownerPendingStops": 0,
+  "ownerPositions": [
+    {
+      "symbol": "HYPE",
+      "size": "0"
+    },
+    {
+      "symbol": "ETH",
+      "size": "0"
+    }
+  ],
+  "permissions": [
+    {
+      "symbol": "HYPE",
+      "pool": "0x63b47ed4a7de0fde659b0d82441dd74828b7297a",
+      "placeOrderFor": true,
+      "cancelOrderFor": true,
+      "reduceOrderFor": true
+    },
+    {
+      "symbol": "ETH",
+      "pool": "0xd6cb1dd58580b84d76068ac21594219ce03aeddf",
+      "placeOrderFor": true,
+      "cancelOrderFor": true,
+      "reduceOrderFor": true
+    }
+  ],
+  "signedTransactions": 0
+}
