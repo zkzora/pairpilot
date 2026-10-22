@@ -90,4 +90,4 @@ Live proofs are listed above. Supporting material:
 
 `src/core/` engine, planner, pairs, journals · `src/adapters/` dreamDEX venue, operator (`placeOrderFor`, permissions, owner discovery), simulator, voucher · `app/` dashboard, overview, setup · `scripts/` CLI, verifier, demo recorder · `tests/` Playwright · `evidence/` proofs · `docs/` runbooks and design notes · `feedback/` integration findings (drafts, not submitted).
 
-Continuing development: [HANDOFF.md](HANDOFF.md). Sources and their limits: [docs/SOURCES.md](docs/SOURCES.md).
+Sources and their limits: [docs/SOURCES.md](docs/SOURCES.md).
