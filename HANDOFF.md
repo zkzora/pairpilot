@@ -1,6 +1,6 @@
 # PairPilot — continuation handoff
 
-Updated: 2026-10-22, Asia/Jakarta. Public repo: https://github.com/zkzora/pairpilot (branch `main`).
+Updated: 2026-10-23, Asia/Jakarta. Public repo: https://github.com/zkzora/pairpilot (branch `main`).
 
 ## Direction
 
@@ -14,6 +14,8 @@ Updated: 2026-10-22, Asia/Jakarta. Public repo: https://github.com/zkzora/pairpi
 3. A clear next step in every state: unknown outcome, incomplete pair, residual below minimum. A "Next step" line now appears per state; refine it from the trader tests.
 4. Keep docs and evidence in sync with each other.
 
+**Active pair workspace (2026-10-23, local, not pushed):** Plan → Execute → Monitor → Recover/Close → Review. `src/core/monitor.ts` (pure bigint: `monitorPair`, `summarizePair`), reads in `src/adapters/dreamdex.ts` (`readPairMarks`, `readPairHistory`), `simMarks` in the simulator, UI in `app/ui/monitor.tsx`, bounded non-overlapping reads in `app/ui/read-gate.ts`. Fill value (Σ quantity × fill price) is now stored on each order; older journals are re-read from receipts. `npm run summary` writes `evidence/pair-summaries.json`. Funding comes from FundingSettled events in the pair's own receipts; `checkExclusive` asks the indexer whether each market was the pair's alone (pair's own transactions listed, nothing else, zero to zero), and net is "pair", "conditional" or not given. `ReadGate` keeps its lock until a timed-out read actually settles, so refreshes never stack requests. No signed trades were made for this work.
+
 **Do not add:** more pairs, AI agents, MCP, Reactivity or more menus without a reason from user testing. The user reserves visual direction.
 
 ## Verified state
@@ -24,7 +26,8 @@ Updated: 2026-10-22, Asia/Jakarta. Public repo: https://github.com/zkzora/pairpi
 | Live recovery: HYPE/ETH, second leg deliberately withheld (`--inject=withhold-second-leg`, labeled) → incomplete → reconcile (no orders) → close review unwound HYPE → flat | `evidence/recovery-injected-hype-eth-proof-8ab9e2fb-…` |
 | Every live run re-checked read-only by `npm run verify -- <journal>`: receipt success, signer, `placeOrderFor` owner, fills = journal, fills inside bound, explorer page, final positions | `scripts/verify-pair.ts` |
 | Owner identified from registry grant logs, never guessed | `evidence/operator-link.json` |
-| Tests: unit and browser (mock wallets, injected offline reads), typecheck, build | `npm test`, `npm run test:browser` |
+| Per-pair results for all 5 live pairs (realized price PnL, fees, funding, net), each market indexer-verified as the pair's alone; realized PnL equals the indexer's MarginBank figure for every close | `evidence/pair-summaries.json` |
+| Tests: 116 unit, 41 browser (mock wallets, injected offline reads), typecheck, build | `npm test`, `npm run test:browser` |
 
 Accounts: owner/app wallet `0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5`; CLI signer `0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50` (key in ignored `.env.local`); browser signer `0xd41C88eE843dcCBe6E8AD3D62e4c33Ccb6C9787b` (user's wallet extension).
 
@@ -37,13 +40,14 @@ What the recovery proof shows: recovery from ONE scenario (a withheld second leg
 3. Reduce-only is a client-side check (SDK 0.32.1 has no flag). Liquidation and outside trades can race it.
 4. Trader validation, a hosted demo, X posts and submission: not done. X drafts in `docs/X-POSTS.md`; checklist in `docs/SUBMISSION.md`.
 5. Mainnet, stops/TP-SL, leverage changes, finish-the-missing-leg automation: not built, by design for now.
+6. The testnet monitor in the browser has only been exercised against the live chain through `npm run summary` and the read functions; the browser UI was checked in Simulation (tests and screenshots). No live pair was open while it was built.
 
 ## Key files
 
 - `src/core/`: `engine.ts` (pair state machine, `reviewClose`/`close`), `planner.ts` (bigint sizing, snapshot/depth guards), `pairs.ts` (assets, presets), journals.
 - `src/adapters/`: `dreamdex.ts` (SDK reads, signing, receipts, owner/signer split, owner discovery), `operator.ts` (`placeOrderFor`, permissions, `findLinkedOwners`), `simulated.ts`, `voucher.ts`.
 - `app/`: dashboard `/` (`page.tsx`, `ui/*`), overview `/home`, design board `/wireframes`, guide `/setup`, read-only `/api/markets`. No signing endpoint.
-- `scripts/`: `trade.ts`, `wallet.ts`, `verify-pair.ts`, `record-demo.ts`, `doctor.ts`.
+- `scripts/`: `trade.ts`, `wallet.ts`, `verify-pair.ts`, `summarize-pair.ts`, `record-demo.ts`, `doctor.ts`.
 - `evidence/`: proofs, preflights, simulations, demo. `docs/`: runbooks (`TESTNET.md`, `BROWSER-WALKTHROUGH.md`, `HYPE-SOL-WALKTHROUGH.md`), `USER-TESTS.md`, `X-POSTS.md`, `SUBMISSION.md`.
 
 ## Rules that must hold

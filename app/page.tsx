@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { PairEngine } from "../src/core/engine";
 import { BrowserJournal } from "../src/core/journal";
 import { makePlan } from "../src/core/planner";
 import type { CloseReview, MarketSpec, PairPlan, PairRecord, Venue } from "../src/core/types";
-import { simMarkets, simPrices, SimulatedVenue, type Scenario } from "../src/adapters/simulated";
+import { simMarkets, simMarks, simPrices, SimulatedVenue, type Scenario } from "../src/adapters/simulated";
+import { monitorPair, summarizePair, type MarksRead } from "../src/core/monitor";
 import { checkPair, DEFAULT_PAIR, samePair, type PairSelection } from "../src/core/pairs";
 import { assertDepth, assertSnapshotPair } from "../src/core/planner";
-import { DreamdexVenue, type LiveSnapshot } from "../src/adapters/dreamdex";
+import { DreamdexVenue, readPairHistory, readPairMarks, type LiveSnapshot } from "../src/adapters/dreamdex";
 import type { Execution, PoolPermission } from "../src/adapters/operator";
 import { hidekiTestnet, NETWORK } from "../src/lib/network";
 import { ExecutionPanel, type Discovery, type ExecChoice } from "./ui/account";
 import { Activity, Hero, Journal, Logo, MarketStrip, ModeSwitch, Post, Review, Ticket, type AccountStatus, type Mode, type Tab } from "./ui/parts";
+import { PairMonitor, PairSummaryView, type HistoryState } from "./ui/monitor";
+import { MONITOR_INTERVAL_MS, MONITOR_STALE_MS, monitorKey, ReadGate } from "./ui/read-gate";
 import { Setup } from "./ui/setup";
 import { shortHash } from "./ui/view";
 import { isUnknownChain, walletErrorText } from "./ui/wallet-error";
@@ -22,7 +25,7 @@ declare global { interface Window { ethereum?: EIP1193Provider } }
 const scenarios: { value: Scenario; label: string }[] = [
   { value: "success", label: "Both legs fill" }, { value: "second-empty", label: "Second leg gets no fill" },
   { value: "partial", label: "Second leg partially fills" }, { value: "timeout", label: "Timeout after broadcast" },
-  { value: "recovery-empty", label: "Recovery has no liquidity" }, { value: "second-rejected", label: "Second signature rejected" },
+  { value: "recovery-empty", label: "First close finds no liquidity" }, { value: "second-rejected", label: "Second signature rejected" },
 ];
 const tabs: [Tab, string][] = [["trade", "Trade"], ["activity", "Activity"], ["setup", "Setup"]];
 
@@ -42,6 +45,8 @@ function storedRecords(): PairRecord[] {
 }
 /** The snapshot only if it was read for exactly this long/short pair. */
 const snapshotFor = (snap: LiveSnapshot | null, p: PairSelection) => snap && snap.markets[0]?.market.symbol === p.long && snap.markets[1]?.market.symbol === p.short ? snap : null;
+/** History is re-read whenever the journal changes; a flat record's history is then fixed. */
+const historyId = (r: PairRecord) => `${r.plan.id}#${r.events.length}`;
 const ownersKey = (signer: string) => `pairpilot:owners:${signer.toLowerCase()}`;
 function savedOwnersFor(signer: string): string[] { try { return signer ? JSON.parse(localStorage.getItem(ownersKey(signer)) ?? "[]") : []; } catch { return []; } }
 
@@ -90,6 +95,46 @@ export default function Page() {
   const listening = useRef(false);
   const pendingWalletChange = useRef("");
   const disconnecting = useRef(false);
+  /** Active pair monitor: the latest read for the CURRENT key only, one read at a time. */
+  const [marks, setMarks] = useState<{ key: string; read: MarksRead | null; error: string }>({ key: "", read: null, error: "" });
+  const [marksLoading, setMarksLoading] = useState(false);
+  const [marksTick, setMarksTick] = useState(0);
+  const marksGate = useRef(new ReadGate());
+  const marksKey = useRef("");
+  const recordRef = useRef<PairRecord | null>(null);
+  const [histories, setHistories] = useState<Record<string, HistoryState>>({});
+  const historyLoads = useRef(new Set<string>());
+
+  /** Read-only marks for the shown pair's OWN markets and owner. Never sends, never changes the journal. */
+  async function readMarks(): Promise<void> {
+    const r = recordRef.current, key = marksKey.current, v = live.current, s = sim.current;
+    if (!r || !key || (r.plan.mode === "testnet" ? !v : !s)) return;
+    if (!marksGate.current.busy) setMarksLoading(true);
+    const result = await marksGate.current.run(key, () => marksKey.current, async () => r.plan.mode === "simulation" ? simMarks(r, s!.positionsRaw) : readPairMarks(v!.exchange, r));
+    if (result.status === "skipped") {
+      // A read that already timed out still holds the gate: say so instead of starting another request.
+      if (result.overdue && marksKey.current === key) setMarks(m => ({ key, read: m.key === key ? m.read : null, error: "The previous read timed out and has not returned yet. No new request is sent until it does." }));
+      return; // Otherwise the read in flight reports for itself.
+    }
+    setMarksLoading(false); setMarksTick(Date.now());
+    if (result.status === "ok") setMarks({ key, read: result.value, error: "" });
+    else if (result.status === "error") setMarks(m => ({ key, read: m.key === key ? m.read : null, error: result.error }));
+    // Read for an account, chain, pair, mode or journal version that is no longer shown: dropped. Read the current one.
+    else if (marksKey.current) return readMarks();
+  }
+  const loadHistory = useCallback(async (r: PairRecord) => {
+    const id = historyId(r), v = live.current;
+    if (r.plan.mode !== "testnet" || historyLoads.current.has(id)) return;
+    if (!v) { setHistories(h => ({ ...h, [id]: { state: "error", error: "Connect the wallet to read receipts." } })); return; }
+    historyLoads.current.add(id);
+    setHistories(h => ({ ...h, [id]: { state: "loading" } }));
+    try {
+      const history = await readPairHistory(v.exchange, r);
+      setHistories(h => live.current === v ? { ...h, [id]: { state: "ok", history, at: Date.now() } } : (({ [id]: _, ...rest }) => rest)(h));
+    } catch (e) {
+      setHistories(h => live.current === v ? { ...h, [id]: { state: "error", error: `History read failed: ${e instanceof Error ? e.message : String(e)}` } } : (({ [id]: _, ...rest }) => rest)(h));
+    } finally { historyLoads.current.delete(id); }
+  }, []);
 
   function persistSim(venue: SimulatedVenue) { localStorage.setItem("pairpilot:simulation", JSON.stringify(venue.snapshot())); }
   /** Active pairs are keyed by OWNER: the positions belong there, whichever key signs. */
@@ -367,6 +412,32 @@ export default function Page() {
   const signerMismatch = record && mode === "testnet" && account && recordSigner.toLowerCase() !== account.toLowerCase()
     ? `Opened by signer ${shortHash(recordSigner)}; the connected signer is ${shortHash(account)}. Connect the original signer to reconcile or close. This signer sends nothing for it.` : "";
   const previewBlock = mode === "simulation" ? "" : !account ? "Connect a wallet to preview" : choice === "linked" && !execution ? "Enter and apply the trading owner" : missing.length ? `Signer is not linked for ${missing.join(" and ")}` : "";
+  // Everything the monitor read depends on. A change discards reads in flight for the old key.
+  const watchKey = record && !plan && record.status !== "flat" ? monitorKey({ mode, chainId: NETWORK.id, owner: record.plan.account, signer: mode === "simulation" ? "simulation" : account, planId: historyId(record), symbols: [record.plan.legs[0].market.symbol, record.plan.legs[1].market.symbol] }) : "";
+  marksKey.current = watchKey; recordRef.current = record;
+  const watching = tab === "trade" && Boolean(watchKey) && !busy;
+  useEffect(() => {
+    if (!watching) return;
+    void readMarks();
+    // Simulated marks change only when the journal does; testnet re-reads on a bounded interval.
+    if (mode === "simulation") return;
+    const timer = setInterval(() => { setMarksTick(Date.now()); if (!document.hidden) void readMarks(); }, MONITOR_INTERVAL_MS);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watching, watchKey]);
+  const shownMarks = marks.key === watchKey ? marks : { read: null, error: "" };
+  const marksView = useMemo(() => {
+    if (!record || !shownMarks.read) return null;
+    try { return monitorPair(record, shownMarks.read); } catch { return null; } // A read for other markets is discarded.
+  }, [record, shownMarks.read]);
+  const marksStale = Boolean(shownMarks.read && mode === "testnet" && marksTick - shownMarks.read.readAt > MONITOR_STALE_MS);
+  const drift = marksView && !marksStale && !shownMarks.error ? marksView.legs.filter(l => l.attribution === "differs").map(l => l.symbol) : [];
+  const summaryFor = (r: PairRecord) => {
+    const h = histories[historyId(r)];
+    return <PairSummaryView record={r} summary={summarizePair(r, h?.state === "ok" ? h.history : undefined)} history={h} onLoad={() => void loadHistory(r)} />;
+  };
+  const monitorSlot = !record ? null : record.status === "flat" ? summaryFor(record)
+    : <PairMonitor record={record} view={marksView} state={{ read: shownMarks.read, error: shownMarks.error, loading: marksLoading, stale: marksStale }} signer={record.plan.signer ?? record.plan.account} disabled={Boolean(busy)} onRefresh={() => void readMarks()} />;
   const accountLabel = !execution ? "" : linked ? `Owner ${shortHash(execution.owner)} · signer ${shortHash(execution.signer)}` : `${shortHash(execution.owner)} · own browser wallet`;
 
   return <div className="app">
@@ -393,7 +464,7 @@ export default function Page() {
         <div className="work">
           <section className="panel" aria-label="Pair workspace">
             {plan ? <Review plan={plan} now={now} mode={mode} accountLabel={accountLabel} scenario={scenarios.find(s => s.value === scenario)!.label} dedicated={dedicated} busy={Boolean(busy)} onAck={setDedicated} onEdit={() => setPlan(null)} onRefresh={() => void preview()} onSign={() => void action(mode === "simulation" ? "Executing simulation…" : "Waiting for wallet / receipts…", execute)} />
-              : record ? <Post record={record} busy={engineBusy} actionsDisabled={Boolean(busy)} signerMismatch={signerMismatch} closeReview={closeReview} now={now}
+              : record ? <Post record={record} busy={engineBusy} actionsDisabled={Boolean(busy)} signerMismatch={signerMismatch} closeReview={closeReview} now={now} monitor={monitorSlot} drift={drift}
                   onReconcile={() => void action("Reading receipts and positions…", reconcile)} onClose={() => void action("Reading positions for the close review…", reviewClose)}
                   onConfirmClose={() => void action(mode === "simulation" ? "Closing filled exposure…" : "Closing: confirm each order in your wallet…", confirmClose)} onCancelClose={() => setCloseReview(null)} onNew={newPair} onExport={() => download(record)} />
               : <Hero pair={pair} />}
@@ -410,7 +481,7 @@ export default function Page() {
         </div>
         <Journal record={showPost ? record : null} open={journalOpen} onToggle={() => setJournalOpen(o => !o)} />
       </>}
-      {tab === "activity" && <Activity mode={mode} account={owner === "simulation" ? "" : owner} records={records} activeId={activeId} filter={filter} selectedId={selected} onFilter={setFilter} onSelect={setSelected} onResolve={() => setTab("trade")} onExport={download} onSimulate={() => { setTab("trade"); if (mode !== "simulation") void action("Switching…", () => switchMode("simulation")); }} />}
+      {tab === "activity" && <Activity mode={mode} account={owner === "simulation" ? "" : owner} records={records} activeId={activeId} filter={filter} selectedId={selected} summary={summaryFor} onFilter={setFilter} onSelect={setSelected} onResolve={() => setTab("trade")} onExport={download} onSimulate={() => { setTab("trade"); if (mode !== "simulation") void action("Switching…", () => switchMode("simulation")); }} />}
       {tab === "setup" && <Setup path={setupPath} onPath={setSetupPath} mode={mode} account={account} hasWallet={hasWallet} status={status} statusError={statusError} loading={statusLoading} copied={copied} busy={Boolean(busy)} onRefresh={() => void readAccount()} onCopy={copyAddress} onTrade={() => setTab("trade")} onConnect={() => void action("Connecting wallet…", connect)} onTestnet={() => void action("Switching…", () => switchMode("testnet"))} />}
     </main>
     <nav className="bottom-nav" aria-label="Sections">{tabs.map(([k, label]) => <button key={k} type="button" aria-current={tab === k ? "page" : undefined} onClick={() => setTab(k)}>{label}</button>)}</nav>

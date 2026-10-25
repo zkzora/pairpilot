@@ -40,6 +40,11 @@ export interface OrderIntent {
   status: "submitting" | "confirmed" | "unknown" | "rejected";
   hash?: Hash;
   filled?: string;
+  /**
+   * Sum of quantityFilled × fillPrice over this order's receipt fills (raw base × raw quote
+   * per whole base). Average fill price = fillValue / filled. Absent in older journals.
+   */
+  fillValue?: string;
   message?: string;
 }
 export type PairStatus = "draft" | "opening" | "paired" | "incomplete" | "closing" | "flat" | "attention";
@@ -62,7 +67,7 @@ export interface CloseReview {
   /** Exposure the close cannot send, with the reason. */
   residuals: { leg: 0 | 1; position: string; reason: string }[];
 }
-export interface OrderOutcome { hash: Hash; filled: string; reverted?: boolean }
+export interface OrderOutcome { hash: Hash; filled: string; reverted?: boolean; fillValue?: string }
 export interface Venue {
   mode: PairPlan["mode"];
   /** Position owner. */

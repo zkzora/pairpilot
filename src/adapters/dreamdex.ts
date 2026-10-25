@@ -1,8 +1,9 @@
-import { decodePlaceOrder, type SomniaMarkets } from "@somnia-chain/markets-sdk";
-import { createPublicClient, http, parseAbi, type Address, type TransactionReceipt, type WalletClient } from "viem";
+import { decodePlaceOrder, marginBankEventsAbi, type SomniaMarkets } from "@somnia-chain/markets-sdk";
+import { createPublicClient, decodeEventLog, http, parseAbi, type Address, type TransactionReceipt, type WalletClient } from "viem";
 import { boundedPrice } from "../core/planner";
 import { RejectedOrder } from "../core/engine";
-import type { Hash, MarketSpec, OrderIntent, OrderOutcome, PairPlan, Side, Venue } from "../core/types";
+import type { Hash, MarketSpec, OrderIntent, OrderOutcome, PairPlan, PairRecord, Side, Venue } from "../core/types";
+import type { Exclusivity, LegRead, MarksRead, PairHistory, TxFills } from "../core/monitor";
 import { createMarkets, hidekiTestnet, NETWORK } from "../lib/network";
 import { DEFAULT_PAIR, pairLabel, type PairSelection } from "../core/pairs";
 import { assertPlacePermissions, encodePlaceOrderFor, findLinkedOwners, IOC, operatorAbi, readPermissions, resolveExecution, revertName, type Execution, type GrantLog } from "./operator";
@@ -49,7 +50,9 @@ export function outcomeFromReceipt(receipt: TransactionReceipt, pool: Address): 
   const decoded = decodePlaceOrder(receipt, pool);
   // OrderPlaced alone does not prove an order is STILL resting. Verify the
   // actual open-order state alongside position read-back, not from an event id.
-  return { hash: receipt.transactionHash, reverted: receipt.status !== "success", filled: String(decoded.fills.reduce((total, fill) => total + fill.quantityFilled, 0n)) };
+  const filled = decoded.fills.reduce((total, fill) => total + fill.quantityFilled, 0n);
+  const fillValue = decoded.fills.reduce((total, fill) => total + fill.quantityFilled * fill.fillPrice, 0n);
+  return { hash: receipt.transactionHash, reverted: receipt.status !== "success", filled: String(filled), fillValue: String(fillValue) };
 }
 
 /**
@@ -244,4 +247,95 @@ export class DreamdexVenue implements Venue {
     if (!touch) throw new Error(`${market.symbol}: no counterparty to close against. Residual remains open.`);
     return boundedPrice(touch, side, plan.slippageBps, BigInt(market.tick));
   }
+}
+
+/**
+ * Read-only marks for a journal's OWN markets, from the chain: position, VWAP entry, mark,
+ * price-only unrealized PnL and funding owed. Works without a wallet.
+ */
+export async function readPairMarks(exchange: SomniaMarkets, record: PairRecord): Promise<MarksRead> {
+  const owner = record.plan.account as Address;
+  const legs = await Promise.all(record.plan.legs.map(async (leg): Promise<LegRead> => {
+    const a = await exchange.client.getPerpPositionAnalytics({ pool: leg.market.pool, marginBank: leg.market.marginBank, account: owner });
+    return a.priceable
+      ? { symbol: leg.market.symbol, priceable: true, size: a.size, avgEntryPrice: a.avgEntryPrice, markPrice: a.markPrice, unrealizedPnl: a.unrealizedPnl, accruedFunding: a.accruedFunding, asOfBlock: a.asOfBlock }
+      : { symbol: leg.market.symbol, priceable: false, size: a.size, asOfBlock: a.asOfBlock };
+  }));
+  return { readAt: Date.now(), legs: legs as [LegRead, LegRead], source: "chain" };
+}
+
+/**
+ * Read-only history for a journal: receipt fills (for journals written before fillValue),
+ * MarginBank fee and funding events in the pair's OWN receipts, and, per market, whether the
+ * indexer shows that market as this pair's alone from open to close. Failures become
+ * "unknown" or "unverified", never zero.
+ */
+export async function readPairHistory(exchange: SomniaMarkets, record: PairRecord): Promise<PairHistory> {
+  const rpc = createPublicClient({ chain: hidekiTestnet, transport: http(NETWORK.rpc, { timeout: 12_000, retryCount: 1 }) });
+  const owner = record.plan.account.toLowerCase();
+  const confirmed = record.operations.filter(o => o.hash && o.status === "confirmed");
+  // A receipt that cannot be read is left out: its fills, fees and funding stay unknown.
+  const receipts = new Map<string, TransactionReceipt>();
+  await Promise.all(confirmed.map(async o => { const r = await rpc.getTransactionReceipt({ hash: o.hash! }).catch(() => null); if (r) receipts.set(o.hash!.toLowerCase(), r); }));
+  const fills = new Map<string, TxFills>();
+  for (const o of confirmed) {
+    const receipt = receipts.get(o.hash!.toLowerCase());
+    if (!receipt) continue;
+    const out = outcomeFromReceipt(receipt, record.plan.legs[o.leg].market.pool);
+    fills.set(o.hash!.toLowerCase(), { filled: BigInt(out.filled), fillValue: BigInt(out.fillValue ?? "0") });
+  }
+  const fees: PairHistory["fees"] = [], funding: PairHistory["funding"] = [];
+  const receiptsRead = new Set<string>();
+  for (const [hash, receipt] of receipts) {
+    receiptsRead.add(hash);
+    for (const log of receipt.logs) {
+      let decoded;
+      try { decoded = decodeEventLog({ abi: marginBankEventsAbi, data: log.data, topics: log.topics }); } catch { continue; }
+      const args = decoded.args as { account?: string; payer?: string; perpPool?: string; amount?: bigint; payment?: bigint };
+      const who = (args.account ?? args.payer ?? "").toLowerCase();
+      if (who !== owner || !args.perpPool) continue;
+      const pool = args.perpPool.toLowerCase();
+      if ((decoded.eventName === "FeeCharged" || decoded.eventName === "BuilderFeeCharged") && args.amount !== undefined) fees.push({ txHash: hash, pool, amount: args.amount, isRebate: false });
+      if (decoded.eventName === "RebatePaid" && args.amount !== undefined) fees.push({ txHash: hash, pool, amount: args.amount, isRebate: true });
+      if (decoded.eventName === "FundingSettled" && args.payment !== undefined) funding.push({ txHash: hash, pool, amount: args.payment });
+    }
+  }
+  const exclusivity: PairHistory["exclusivity"] = {};
+  await Promise.all(record.plan.legs.map(async (leg, i) => {
+    const pool = leg.market.pool.toLowerCase();
+    const ops = confirmed.filter(o => o.leg === i && BigInt(o.filled ?? "0") > 0n);
+    if (!ops.length) return; // Never held a position: nothing to attribute.
+    exclusivity[pool] = await checkExclusive(exchange, rpc, owner, pool, ops.map(o => ({ kind: o.kind, hash: o.hash!.toLowerCase() })), receipts, BigInt(record.positions[i]) === 0n)
+      .catch(e => ({ state: "unverified" as const, reason: `the indexer could not be read: ${e instanceof Error ? e.message : String(e)}` }));
+  }));
+  return { fills, fees, funding, receiptsRead, exclusivity, source: "chain+indexer" };
+}
+
+const PAGE = 1000, FUNDING_PAGE = 200;
+/** One market: were this pair's transactions the owner's only position changes and funding settlements there, from open to close? */
+export async function checkExclusive(exchange: SomniaMarkets, rpc: { getBlock(a: { blockNumber: bigint }): Promise<{ timestamp: bigint }> }, owner: string, pool: string,
+  ops: { kind: "open" | "close"; hash: string }[], receipts: Map<string, TransactionReceipt>, flat: boolean): Promise<Exclusivity> {
+  if (!flat) return { state: "unverified", reason: "the position is still open" };
+  if (ops.some(o => !receipts.has(o.hash))) return { state: "unverified", reason: "a receipt of this pair could not be read" };
+  const blocks = ops.map(o => receipts.get(o.hash)!.blockNumber);
+  const first = blocks.reduce((a, b) => a < b ? a : b), last = blocks.reduce((a, b) => a > b ? a : b);
+  const [from, to] = await Promise.all([first, last].map(async b => Number((await rpc.getBlock({ blockNumber: b })).timestamp)));
+  const ourHashes = new Set(ops.map(o => o.hash));
+  const rows = (await exchange.client.listPerpPositionChanges({ account: owner, pool, from, to: to + 1, order: "asc", limit: PAGE }))
+    .filter(r => r.blockNumber >= first && r.blockNumber <= last)
+    .sort((a, b) => a.blockNumber === b.blockNumber ? a.logIndex - b.logIndex : a.blockNumber < b.blockNumber ? -1 : 1);
+  if (rows.length >= PAGE) return { state: "unverified", reason: "too many indexed position changes in the window to check" };
+  // Completeness: the indexer must list this pair's own transactions. Missing ones mean it lags or is incomplete.
+  const missing = [...ourHashes].filter(h => !rows.some(r => r.txHash.toLowerCase() === h));
+  if (missing.length) return { state: "unverified", reason: `the indexer does not list ${missing.length} of this pair's transaction(s) yet` };
+  const outside = rows.filter(r => !ourHashes.has(r.txHash.toLowerCase()));
+  if (outside.length) return { state: "mixed", reason: `the indexer lists ${outside.length} position change(s) by other transactions in this market while the pair was open.` };
+  if (rows[0].sizeBefore !== 0n) return { state: "mixed", reason: "the owner already held a position in this market when the pair opened." };
+  if (rows.at(-1)!.sizeAfter !== 0n) return { state: "mixed", reason: "the owner's position did not end at zero with the pair's last close." };
+  const settlements = await exchange.client.getFundingPayments(owner, { pool, limit: FUNDING_PAGE });
+  if (settlements.length >= FUNDING_PAGE && Math.min(...settlements.map(r => Number(r.timestamp))) > from) return { state: "unverified", reason: "the funding history page does not reach back to the open" };
+  // Timestamps are whole seconds and blocks are faster, so a boundary second counts as inside: conservative.
+  const foreign = settlements.filter(r => !ourHashes.has(r.txHash.toLowerCase()) && Number(r.timestamp) >= from && Number(r.timestamp) <= to);
+  if (foreign.length) return { state: "mixed", reason: `the indexer lists ${foreign.length} funding settlement(s) in other transactions while the pair was open.` };
+  return { state: "verified", throughBlock: last };
 }

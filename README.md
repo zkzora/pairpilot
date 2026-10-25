@@ -14,7 +14,9 @@ A relative-value trader opens a long/short pair as two separate orders. If one f
 2. **Check before signing.** Fresh books for the selected pair; stale or mismatched reads, and depth too thin inside the price bound, are refused. Margin, existing positions, orders and stops are checked; for a linked app wallet, both pools' operator permissions too. Both orders are simulated.
 3. **Send two bounded IOC orders, one after another.** The intent is saved before signing and the hash before waiting. Unfilled quantity is cancelled by the venue, never resent.
 4. **Read back what happened.** Fills are decoded from receipts and checked against on-chain positions. An unknown outcome blocks new orders until reconciled; reconcile sends nothing.
-5. **Recover explicitly.** The close review shows each leg's actual open quantity and price bound before anything is signed. A residual below the market minimum stays visible; nothing is reported flat until positions read zero.
+5. **Monitor the open pair.** While a pair is open, the Trade view re-reads the owner's position, mark, average entry, marked value, price-only unrealized PnL and funding owed for the journal's own two markets, every 15 s and one read at a time. A position that differs from what the pair recorded is flagged and not counted as the pair's PnL.
+6. **Recover explicitly.** Each state gets one plain next step. The close review shows each leg's actual open quantity and price bound before anything is signed. A residual below the market minimum stays visible; nothing is reported flat until positions read zero.
+7. **Review the closed pair.** Planned versus filled quantities, average fill prices from receipts, realized price PnL, fees and funding settled in the pair's own receipts, and the final zero read-back. Funding and net say whose they are: pair-exclusive only when the indexer shows each market was the pair's alone from open to close, otherwise conditional, or not given when other activity shared a market. Any figure that cannot be read shows as unavailable, never as 0.
 
 It runs in two ways, both against the same engine: a **browser dashboard** (keys stay in your wallet extension; the server has no signing endpoint) and a **local CLI**. Either one trades its own account or a dreamDEX app wallet that linked it through **Link a Bot** (operator `placeOrderFor`).
 
@@ -37,6 +39,22 @@ Transactions (explorer `https://explorer.testnet.somnia.network/tokyo/tx/…`):
 3. SOL/BTC browser: [open SOL](https://explorer.testnet.somnia.network/tokyo/tx/0x41a24218af1ae1261c3314806627c801c80505b0fe561d7ded668447a066361e) · [open BTC](https://explorer.testnet.somnia.network/tokyo/tx/0x5fb8759ffb7b9884616f4c403e825dfde9f03414284261a62afe31536641b7f3) · [close SOL](https://explorer.testnet.somnia.network/tokyo/tx/0x6270c900b713807cdbd8f8865d19b37376544254069f8eeeff5782a28dd28718) · [close BTC](https://explorer.testnet.somnia.network/tokyo/tx/0x153e30aa2a2076420251b56c0ef0b1530c9eba47bbd98b0147593d3a840b661b)
 4. HYPE/SOL CLI: [open HYPE](https://explorer.testnet.somnia.network/tokyo/tx/0x583241ba1854187b00608aefe9158479b9d3c5d8d3f995015f84ea7e8437705f) · [open SOL](https://explorer.testnet.somnia.network/tokyo/tx/0x4c6b8ee5ff57aa7325e1b1ae6120137d52aabe000beb76cf7ce0c2f6bda9cb0d) · [close HYPE](https://explorer.testnet.somnia.network/tokyo/tx/0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2) · [close SOL](https://explorer.testnet.somnia.network/tokyo/tx/0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1)
 5. HYPE/ETH recovery: [open HYPE](https://explorer.testnet.somnia.network/tokyo/tx/0xa39db5665305f38b0b16fc7f5419aa94de1d9d7f84f3ac3cac3a1699e0e68e6e) · ETH short not broadcast (injected) · [close HYPE](https://explorer.testnet.somnia.network/tokyo/tx/0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b)
+
+### What each live pair made or lost
+
+Read-only, from the pairs' own receipts and the dreamDEX indexer: [evidence/pair-summaries.json](evidence/pair-summaries.json) (`npm run summary -- <journal>`). USDso; funding paid is positive, received is negative. Net = realized − fees − funding paid. This is each pair's result, not the account's equity change.
+
+| # | Pair | Realized price PnL | Fees | Funding paid | Funding attribution | Net |
+|---|---|---:|---:|---:|---|---:|
+| 1 | ETH/BTC CLI | −0.009178 | 0 | 0 | pair-exclusive | −0.009178 |
+| 2 | ETH/BTC browser | +0.056405 | 0 | −0.007416 | pair-exclusive | +0.063821 |
+| 3 | SOL/BTC browser | +0.005972 | 0 | 0 | pair-exclusive | +0.005972 |
+| 4 | HYPE/SOL CLI | −0.0194 | 0 | 0 | pair-exclusive | −0.0194 |
+| 5 | HYPE/ETH recovery | +0.0144 | 0 | 0 | pair-exclusive (ETH: no position) | +0.0144 |
+
+- **Realized PnL:** for every close, the figure from receipt fills equals the indexer's own MarginBank figure (`crossCheck` in the file).
+- **Fees and funding** are MarginBank events in the pairs' own receipts. Fees are 0 because no receipt holds a fee or rebate event. Funding settles when the owner's position changes, so pair 2's two close receipts hold its only settlements; the other pairs' receipts hold none.
+- **"Pair-exclusive"** means the indexer lists only the pair's own transactions as the owner's position changes in that market between open and close, starting and ending at zero, and no funding settlement in other transactions. An indexer that has not yet listed the pair's own transactions counts as unverified, never as a verified zero.
 
 Accounts: app wallet (owner, margin and positions) `0x436dAE2EF8e8eECE9960b3C3a9DA6731a2D6c1F5`; CLI signer `0x39f4aebEff78aB72c2FDA3b34c7993608AA79C50`; browser signer `0xd41C88eE843dcCBe6E8AD3D62e4c33Ccb6C9787b`. How the owner was identified without guessing: [operator-link.json](evidence/operator-link.json). Re-verify any journal yourself: `npm run verify -- <journal.json>` (read-only).
 
@@ -63,9 +81,9 @@ npm run trade -- reconcile --owner=0x<app wallet>     # sends nothing
 npm run trade -- close    --owner=0x<app wallet>      # unwinds the JOURNAL's markets
 ```
 
-Omit `--owner` to trade the key's own account. Runbooks: [docs/TESTNET.md](docs/TESTNET.md), [docs/HYPE-SOL-WALKTHROUGH.md](docs/HYPE-SOL-WALKTHROUGH.md).
+Omit `--owner` to trade the key's own account. `npm run summary -- <journal.json>` prints a closed-pair summary from receipts and the indexer (read-only, no key). Runbooks: [docs/TESTNET.md](docs/TESTNET.md), [docs/HYPE-SOL-WALKTHROUGH.md](docs/HYPE-SOL-WALKTHROUGH.md).
 
-Checks: `npm test` (89 unit tests), `npm run test:browser` (37 Playwright tests at 375/768/1280 px, using mock wallets and injected offline reads, never real keys), `npm run typecheck`, `npm run build`, `npm run doctor` (read-only network check).
+Checks: `npm test` (116 unit tests), `npm run test:browser` (41 Playwright tests at 375/768/1280 px, using mock wallets and injected offline reads, never real keys), `npm run typecheck`, `npm run build`, `npm run doctor` (read-only network check).
 
 ## Limits, stated plainly
 
@@ -73,6 +91,7 @@ Checks: `npm test` (89 unit tests), `npm run test:browser` (37 Playwright tests 
 - **Reduce-only is client-side.** dreamDEX SDK 0.32.1 ordinary orders have no reduce-only flag. PairPilot re-reads the position right before each close, but another bot, manual trade or liquidation on the same account can race it. Use an account dedicated to PairPilot.
 - **Dust can remain.** A leg left below the market minimum cannot be closed by any order; it stays visible as residual exposure.
 - **Equal notional is not a hedge guarantee.** It is not beta-neutral; funding, correlation and liquidation still apply.
+- **Monitor figures are estimates.** Unrealized PnL is (mark − the owner's average entry) × size, before fees and funding; a close fills at book prices. Entry and funding are per owner and market, so they are attributed to the pair only while the owner's position equals the pair's record, and funding owed on an open pair is always labeled conditional. In the summary, funding is pair-exclusive only after the indexer check above; if the indexer lags or cannot be read, net is labeled conditional, and if another trade shared a market, no net is given for it. In the browser, testnet monitoring needs the wallet connected; simulation marks are fixed and fees and funding are not simulated.
 - **Testnet only.** No mainnet, no stops or leverage changes, no automation. Own-wallet signed orders are implemented but not live-proven: the one-time voucher claim reverts on-chain for that key (see [feedback draft](feedback/voucher-eligibility-says-eligible-but-claim-reverts.md)), so all live proofs use a linked app wallet.
 - Journals are local: browser journals in local storage, CLI journals in ignored `.pairpilot/`. A send interrupted before its hash is saved needs a manual nonce check; PairPilot never guesses or retries.
 

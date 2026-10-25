@@ -1,0 +1,377 @@
+{
+  "generatedAt": "2026-10-22T17:21:37.855Z",
+  "source": "read-only: chain receipts (fills, MarginBank fee and FundingSettled events, block times) and the dreamDEX indexer (per-market exclusivity check, realized PnL cross-check)",
+  "pairs": [
+    {
+      "pair": "cd37d484-d55b-4783-af0d-858384424f47",
+      "journal": "evidence/testnet-pair-cd37d484-d55b-4783-af0d-858384424f47.json",
+      "status": "flat",
+      "legs": [
+        {
+          "symbol": "ETH",
+          "side": "long",
+          "planned": "0.0103",
+          "opened": "0.0103",
+          "avgOpenPrice": "2402.88",
+          "closed": "0.0103",
+          "avgClosePrice": "2403.02",
+          "openNow": "0",
+          "realizedPricePnl": "0.001442",
+          "fees": "0",
+          "netBeforeFunding": "0.001442",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30109717"
+          },
+          "net": "0.001442",
+          "netBasis": "pair"
+        },
+        {
+          "symbol": "BTC",
+          "side": "short",
+          "planned": "0.0003",
+          "opened": "0.0003",
+          "avgOpenPrice": "81969.2",
+          "closed": "0.0003",
+          "avgClosePrice": "82004.6",
+          "openNow": "0",
+          "realizedPricePnl": "-0.01062",
+          "fees": "0",
+          "netBeforeFunding": "-0.01062",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30109736"
+          },
+          "net": "-0.01062",
+          "netBasis": "pair"
+        }
+      ],
+      "totals": {
+        "realizedPricePnl": "-0.009178",
+        "fees": "0",
+        "netBeforeFunding": "-0.009178",
+        "fundingPaid": "0",
+        "fundingAttribution": "exclusive",
+        "net": "-0.009178",
+        "netBasis": "pair"
+      },
+      "flatReadBackAt": "2026-10-22T09:56:21.569Z",
+      "notes": [
+        "Fees and funding are MarginBank events in this pair's own receipts (FeeCharged, RebatePaid, BuilderFeeCharged, FundingSettled); a read receipt without one means 0. The venue settles the owner's whole position in a market, so funding is attributed per leg below.",
+        "ETH: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30109717). Its funding is this pair's.",
+        "BTC: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30109736). Its funding is this pair's."
+      ],
+      "crossCheck": [
+        {
+          "leg": "ETH",
+          "txHash": "0x755a1052afdf3593a34aad3fc8f4ad245f33ebdb24a003ff70e180f10a18ba00",
+          "indexedRealizedPnl": "0.001442"
+        },
+        {
+          "leg": "BTC",
+          "txHash": "0x92e1dec77c75f0224f466880ec2ed72e785f3dc3f31510d69a1d29566122cbe5",
+          "indexedRealizedPnl": "-0.01062"
+        }
+      ]
+    },
+    {
+      "pair": "bda58fa7-368a-4915-af86-62bc1fbad4f6",
+      "journal": "evidence/browser-journal-bda58fa7-368a-4915-af86-62bc1fbad4f6-flat.json",
+      "status": "flat",
+      "legs": [
+        {
+          "symbol": "ETH",
+          "side": "long",
+          "planned": "0.0207",
+          "opened": "0.0207",
+          "avgOpenPrice": "2402.9",
+          "closed": "0.0207",
+          "avgClosePrice": "2399.74",
+          "openNow": "0",
+          "realizedPricePnl": "-0.065412",
+          "fees": "0",
+          "netBeforeFunding": "-0.065412",
+          "fundingPaid": "0.000621495412623794",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30164688"
+          },
+          "net": "-0.066033495412623794",
+          "netBasis": "pair"
+        },
+        {
+          "symbol": "BTC",
+          "side": "short",
+          "planned": "0.00061",
+          "opened": "0.00061",
+          "avgOpenPrice": "82151.8",
+          "closed": "0.00061",
+          "avgClosePrice": "81952.1",
+          "openNow": "0",
+          "realizedPricePnl": "0.121817",
+          "fees": "0",
+          "netBeforeFunding": "0.121817",
+          "fundingPaid": "-0.008037024684403856",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30164734"
+          },
+          "net": "0.129854024684403856",
+          "netBasis": "pair"
+        }
+      ],
+      "totals": {
+        "realizedPricePnl": "0.056405",
+        "fees": "0",
+        "netBeforeFunding": "0.056405",
+        "fundingPaid": "-0.007415529271780062",
+        "fundingAttribution": "exclusive",
+        "net": "0.063820529271780062",
+        "netBasis": "pair"
+      },
+      "flatReadBackAt": "2026-10-22T11:28:02.618Z",
+      "notes": [
+        "Fees and funding are MarginBank events in this pair's own receipts (FeeCharged, RebatePaid, BuilderFeeCharged, FundingSettled); a read receipt without one means 0. The venue settles the owner's whole position in a market, so funding is attributed per leg below.",
+        "ETH: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30164688). Its funding is this pair's.",
+        "BTC: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30164734). Its funding is this pair's."
+      ],
+      "crossCheck": [
+        {
+          "leg": "ETH",
+          "txHash": "0x92e53f5fc050a6b30d9cd9d3b472661a0ca26f9d59d63bcc8caef2903007d233",
+          "indexedRealizedPnl": "-0.065412"
+        },
+        {
+          "leg": "BTC",
+          "txHash": "0x51cc3536be3b663b9fc89313f22ed18c5f6befc1c52acaf04ddcec9187b69b55",
+          "indexedRealizedPnl": "0.121817"
+        }
+      ]
+    },
+    {
+      "pair": "43dc36bf-185e-4b9b-bda1-8d9cc2655f34",
+      "journal": "evidence/browser-journal-43dc36bf-185e-4b9b-bda1-8d9cc2655f34-flat.json",
+      "status": "flat",
+      "legs": [
+        {
+          "symbol": "SOL",
+          "side": "long",
+          "planned": "0.23",
+          "opened": "0.23",
+          "avgOpenPrice": "104.31",
+          "closed": "0.23",
+          "avgClosePrice": "104.39",
+          "openNow": "0",
+          "realizedPricePnl": "0.0184",
+          "fees": "0",
+          "netBeforeFunding": "0.0184",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30198873"
+          },
+          "net": "0.0184",
+          "netBasis": "pair"
+        },
+        {
+          "symbol": "BTC",
+          "side": "short",
+          "planned": "0.0003",
+          "opened": "0.0003",
+          "avgOpenPrice": "81890",
+          "closed": "0.0003",
+          "avgClosePrice": "81931.426666666666666666",
+          "openNow": "0",
+          "realizedPricePnl": "-0.012428",
+          "fees": "0",
+          "netBeforeFunding": "-0.012428",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30198919"
+          },
+          "net": "-0.012428",
+          "netBasis": "pair"
+        }
+      ],
+      "totals": {
+        "realizedPricePnl": "0.005972",
+        "fees": "0",
+        "netBeforeFunding": "0.005972",
+        "fundingPaid": "0",
+        "fundingAttribution": "exclusive",
+        "net": "0.005972",
+        "netBasis": "pair"
+      },
+      "flatReadBackAt": "2026-10-22T12:25:02.723Z",
+      "notes": [
+        "Fees and funding are MarginBank events in this pair's own receipts (FeeCharged, RebatePaid, BuilderFeeCharged, FundingSettled); a read receipt without one means 0. The venue settles the owner's whole position in a market, so funding is attributed per leg below.",
+        "SOL: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30198873). Its funding is this pair's.",
+        "BTC: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30198919). Its funding is this pair's."
+      ],
+      "crossCheck": [
+        {
+          "leg": "SOL",
+          "txHash": "0x6270c900b713807cdbd8f8865d19b37376544254069f8eeeff5782a28dd28718",
+          "indexedRealizedPnl": "0.0184"
+        },
+        {
+          "leg": "BTC",
+          "txHash": "0x153e30aa2a2076420251b56c0ef0b1530c9eba47bbd98b0147593d3a840b661b",
+          "indexedRealizedPnl": "-0.012428"
+        }
+      ]
+    },
+    {
+      "pair": "6516f259-4cfb-4945-b25b-e7d0af214ddd",
+      "journal": "evidence/testnet-pair-6516f259-4cfb-4945-b25b-e7d0af214ddd.json",
+      "status": "flat",
+      "legs": [
+        {
+          "symbol": "HYPE",
+          "side": "long",
+          "planned": "0.31",
+          "opened": "0.31",
+          "avgOpenPrice": "78.55",
+          "closed": "0.31",
+          "avgClosePrice": "78.5",
+          "openNow": "0",
+          "realizedPricePnl": "-0.0155",
+          "fees": "0",
+          "netBeforeFunding": "-0.0155",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30253817"
+          },
+          "net": "-0.0155",
+          "netBasis": "pair"
+        },
+        {
+          "symbol": "SOL",
+          "side": "short",
+          "planned": "0.23",
+          "opened": "0.23",
+          "avgOpenPrice": "105.06",
+          "closed": "0.23",
+          "avgClosePrice": "105.076956521739130434",
+          "openNow": "0",
+          "realizedPricePnl": "-0.0039",
+          "fees": "0",
+          "netBeforeFunding": "-0.0039",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30253833"
+          },
+          "net": "-0.0039",
+          "netBasis": "pair"
+        }
+      ],
+      "totals": {
+        "realizedPricePnl": "-0.0194",
+        "fees": "0",
+        "netBeforeFunding": "-0.0194",
+        "fundingPaid": "0",
+        "fundingAttribution": "exclusive",
+        "net": "-0.0194",
+        "netBasis": "pair"
+      },
+      "flatReadBackAt": "2026-10-22T13:56:39.860Z",
+      "notes": [
+        "Fees and funding are MarginBank events in this pair's own receipts (FeeCharged, RebatePaid, BuilderFeeCharged, FundingSettled); a read receipt without one means 0. The venue settles the owner's whole position in a market, so funding is attributed per leg below.",
+        "HYPE: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30253817). Its funding is this pair's.",
+        "SOL: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30253833). Its funding is this pair's."
+      ],
+      "crossCheck": [
+        {
+          "leg": "HYPE",
+          "txHash": "0x2609cc08e4222fa10e93e846a6d446704409a124be98cba345671e488c8f65e2",
+          "indexedRealizedPnl": "-0.0155"
+        },
+        {
+          "leg": "SOL",
+          "txHash": "0xbee0842860e478eae7e4ff09adc7e435d9eb79230eb3748ec09e01cb38da27f1",
+          "indexedRealizedPnl": "-0.0039"
+        }
+      ]
+    },
+    {
+      "pair": "8ab9e2fb-8185-4d1c-9bfe-59081193117a",
+      "journal": "evidence/testnet-pair-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json",
+      "status": "flat",
+      "legs": [
+        {
+          "symbol": "HYPE",
+          "side": "long",
+          "planned": "0.31",
+          "opened": "0.31",
+          "avgOpenPrice": "78.583548387096774193",
+          "closed": "0.31",
+          "avgClosePrice": "78.63",
+          "openNow": "0",
+          "realizedPricePnl": "0.0144",
+          "fees": "0",
+          "netBeforeFunding": "0.0144",
+          "fundingPaid": "0",
+          "fundingAttribution": "exclusive",
+          "exclusivity": {
+            "state": "verified",
+            "throughBlock": "30255134"
+          },
+          "net": "0.0144",
+          "netBasis": "pair"
+        },
+        {
+          "symbol": "ETH",
+          "side": "short",
+          "planned": "0.0104",
+          "opened": "0",
+          "avgOpenPrice": null,
+          "closed": "0",
+          "avgClosePrice": null,
+          "openNow": "0",
+          "realizedPricePnl": "0",
+          "fees": "0",
+          "netBeforeFunding": "0",
+          "fundingPaid": "0",
+          "fundingAttribution": "no-position",
+          "exclusivity": null,
+          "net": "0",
+          "netBasis": "pair"
+        }
+      ],
+      "totals": {
+        "realizedPricePnl": "0.0144",
+        "fees": "0",
+        "netBeforeFunding": "0.0144",
+        "fundingPaid": "0",
+        "fundingAttribution": "exclusive",
+        "net": "0.0144",
+        "netBasis": "pair"
+      },
+      "flatReadBackAt": "2026-10-22T13:58:49.981Z",
+      "notes": [
+        "Fees and funding are MarginBank events in this pair's own receipts (FeeCharged, RebatePaid, BuilderFeeCharged, FundingSettled); a read receipt without one means 0. The venue settles the owner's whole position in a market, so funding is attributed per leg below.",
+        "HYPE: the indexer lists only this pair's transactions as the owner's position changes in this market from open to close, starting and ending at zero (checked through block 30255134). Its funding is this pair's."
+      ],
+      "crossCheck": [
+        {
+          "leg": "HYPE",
+          "txHash": "0x4532aeec1c17a3c2cd65b722794edc5ee7f61c86ffcb4121b0c83a00692b857b",
+          "indexedRealizedPnl": "0.0144"
+        }
+      ]
+    }
+  ]
+}

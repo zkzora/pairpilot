@@ -36,6 +36,8 @@ describe("pair execution and recovery", () => {
     const record = await engine.close(plan.id);
     expect(record.status).toBe("incomplete");
     expect(record.positions[0]).not.toBe("0");
+    // The simulator's book is empty for the first close only; a second, explicit close ends flat.
+    expect((await engine.close(plan.id)).status).toBe("flat");
   });
   it("tracks partial fills rather than requested quantities", async () => {
     const { engine, plan } = setup("partial");

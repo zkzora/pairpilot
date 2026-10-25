@@ -53,6 +53,11 @@ test("shows unresolved recovery rather than reporting flat", async ({ page }) =>
   await page.getByRole("button", { name: "Execute simulated close", exact: true }).click();
   await expect(page.getByText("Residual exposure", { exact: true })).toBeVisible();
   await expect(page.getByText("Flat", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Next step")).toContainText("The close got no fill");
+  // No loop: a second reviewed close finds liquidity and ends flat.
+  await page.getByRole("button", { name: "Close remaining exposure", exact: true }).click();
+  await page.getByRole("button", { name: "Execute simulated close", exact: true }).click();
+  await expect(page.getByText("Flat", { exact: true })).toBeVisible();
 });
 
 test("testnet mode requires a wallet and never offers simulated execution", async ({ page }) => {

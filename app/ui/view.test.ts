@@ -47,11 +47,15 @@ describe("dashboard view of journal records (simulated engine runs)", () => {
     expect(value(record, 1, "Last recorded")).toBeDefined();
     expect(pairAlert(record, false)?.title).toContain("Reconcile before sending another order");
   });
-  it("calls a failed recovery residual exposure", async () => {
+  it("calls a failed recovery residual exposure, says nothing filled, and lets a later review finish it", async () => {
     const { engine, plan } = await run("recovery-empty");
     const record = await engine.close(plan.id);
     expect(pairStatus(record, false).label).toBe("Residual exposure");
     expect(legView(record, 0, false).status).toBe("Residual");
+    expect(legView(record, 0, false).note).toContain("no fill");
+    expect(nextStep(record, false)).toMatch(/^The close got no fill: .* is still open\. Review the close again/);
+    expect(nextStep(record, false)).not.toMatch(/\b(resend|retry)\b/i);
+    expect((await engine.close(plan.id)).status).toBe("flat"); // liquidity is back for the second reviewed close
   });
   it("distinguishes an in-flight wallet prompt from an interrupted send without a hash", async () => {
     const { record } = await run("success");
@@ -96,6 +100,9 @@ describe("next step for every state", () => {
   it("names one action per state and never suggests resending", async () => {
     const paired = (await run("success")).record;
     expect(nextStep(paired, false)).toContain("Close pair");
+    expect(nextStep(paired, false)).toContain("ETH +0.0199 and BTC −0.0005");
+    expect(nextStep(paired, false)).toContain("Nothing closes automatically");
+    expect(nextStep(paired, false, ["BTC"])).toMatch(/different BTC position .* Press Reconcile/);
     const incomplete = (await run("second-empty")).record;
     expect(nextStep(incomplete, false)).toContain("ETH +0.0199");
     expect(nextStep(incomplete, false)).toContain("does not send the missing leg");
@@ -104,7 +111,10 @@ describe("next step for every state", () => {
     const noHash: PairRecord = { ...paired, status: "attention", operations: [{ ...paired.operations[0], status: "unknown", hash: undefined }] };
     expect(nextStep(noHash, false)).toContain("transaction history");
     const { engine, plan } = await run("success");
-    expect(nextStep(await engine.close(plan.id), false)).toContain("Done");
+    expect(nextStep(await engine.close(plan.id), false)).toMatch(/^Done\. Both legs read back as zero at /);
+    const partial = (await run("partial")).record;
+    expect(nextStep(partial, false)).toContain("does not send the missing leg");
+    expect(nextStep({ ...partial, operations: [...partial.operations, { ...partial.operations[1], id: "close-1", kind: "close" }] }, false)).toMatch(/^The close filled partly\. Review the close again/);
     expect(nextStep(paired, true)).toBeNull();
     for (const r of [paired, incomplete, unknown, noHash]) expect(nextStep(r, false)).not.toMatch(/\b(resend|retry)\b/i);
   });

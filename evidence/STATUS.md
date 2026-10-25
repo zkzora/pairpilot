@@ -38,3 +38,15 @@ Source of execution results: local npm/test commands, user-supplied browser expo
 | Demo | `evidence/demo/pairpilot-demo.webm`, 49 s, recorded from a production build; simulation labeled, testnet part read-only |
 
 UX fixes from user testing this round: browser 0 USDso confusion (linked app wallet discovery from registry logs), wallet connect `[object Object]` errors, sub-minimum residual dead end (now named, leg labeled "Below minimum", close disabled with reason), Activity raw units, swapped-pair label, testnet strip showing the previous pair's books after a Simulation pair change.
+
+## Active pair workspace (2026-10-23)
+
+| Check | Observed result |
+| --- | --- |
+| Per-pair summaries, all 5 live pairs | READ-ONLY. `npm run summary` over the five journals: realized price PnL from receipt fills equals the indexer's MarginBank realized PnL for every close; no MarginBank fee or rebate events in any receipt (fees 0); funding from FundingSettled events in the pairs' own receipts (only ETH/BTC browser `bda58fa7` had settlements, in its two close transactions: net received 0.007416, matching the indexer's rows). Every market of every pair passed the exclusivity check (indexer lists the pair's own transactions and nothing else, zero to zero; no outside funding settlement), so all five nets are pair-exclusive. `evidence/pair-summaries.json` |
+| Monitor and summary arithmetic | Unit tests: mixed decimals (HYPE 6, SOL 9), attribution refused when the owner's position differs, stale marks unavailable not zero, partial fills, unknown outcomes, unread receipts keep fees unknown, funding window and pool filter, net only when all parts are known, older journals re-read from receipts |
+| Read gate | Unit tests: no overlapping reads, results and errors discarded after a mode/chain/owner/signer/pair/journal change, timeouts reported as errors; a timed-out read keeps the lock until it settles (slow read plus five refresh attempts: one request, never two at once) |
+| Funding attribution | Unit tests: empty or lagging indexer is unverified, never a verified zero; outside position change, pre-existing position, non-zero end or outside settlement is mixed; open position, unread receipt or truncated page is unverified. Summary: net unqualified only when exclusive, labeled conditional when unverified, not given when mixed; rendered wording checked |
+| Browser | 41 Playwright tests (4 new: monitor values a partial pair at simulated marks and sends nothing; reattaches after reload; closed summary in Trade and Activity; 375 px without sideways scroll) |
+| Tests | 116 unit, 41 browser, typecheck, production build |
+| Live monitor in the browser | NOT exercised on a live open pair: no signed trades were made for this work |

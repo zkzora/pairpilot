@@ -2,7 +2,8 @@ import { parseUnits } from "viem";
 import { RejectedOrder } from "../core/engine";
 import { boundedPrice } from "../core/planner";
 import { DEFAULT_PAIR, isAsset, type Asset, type PairSelection } from "../core/pairs";
-import { signed, type Hash, type MarketSpec, type OrderIntent, type OrderOutcome, type PairPlan, type Side, type Venue } from "../core/types";
+import { signed, type Hash, type MarketSpec, type OrderIntent, type OrderOutcome, type PairPlan, type PairRecord, type Side, type Venue } from "../core/types";
+import { markToMarket, type LegRead, type MarksRead } from "../core/monitor";
 
 export type Scenario = "success" | "second-empty" | "partial" | "timeout" | "recovery-empty" | "second-rejected";
 const BANK = "0x0000000000000000000000000000000000000003" as const;
@@ -30,6 +31,8 @@ export class SimulatedVenue implements Venue {
   positionsRaw: [bigint, bigint] = [0n, 0n];
   sends = 0;
   outcomes = new Map<Hash, OrderOutcome>();
+  /** recovery-empty: the book is empty for the FIRST close only; liquidity returns after that. */
+  emptyCloseUsed = false;
   constructor(public scenario: Scenario = "success", private persist?: (venue: SimulatedVenue) => void) {}
   async positions(): Promise<[bigint, bigint]> { return [...this.positionsRaw]; }
   async assertReady() {}
@@ -43,9 +46,9 @@ export class SimulatedVenue implements Venue {
       if (["second-empty", "recovery-empty"].includes(this.scenario)) filled = 0n;
       if (this.scenario === "partial") filled = filled / 2n / 1000n * 1000n;
     }
-    if (order.kind === "close" && this.scenario === "recovery-empty") filled = 0n;
+    if (order.kind === "close" && this.scenario === "recovery-empty" && !this.emptyCloseUsed) { filled = 0n; this.emptyCloseUsed = true; }
     const hash: Hash = `0x${this.sends.toString(16).padStart(64, "0")}`;
-    const outcome = { hash, filled: String(filled) };
+    const outcome = { hash, filled: String(filled), fillValue: String(filled * simPrice(_plan.legs[order.leg].market.symbol)) };
     this.positionsRaw[order.leg] += signed(order.side, filled);
     this.outcomes.set(hash, outcome);
     this.persist?.(this);
@@ -56,12 +59,29 @@ export class SimulatedVenue implements Venue {
   async receipt(_plan: PairPlan, order: OrderIntent) { return order.hash ? this.outcomes.get(order.hash) ?? null : null; }
   // Prices come from the JOURNAL's own leg market, never from a current selector.
   async closePrice(plan: PairPlan, leg: 0 | 1, side: Side) { return boundedPrice(simPrice(plan.legs[leg].market.symbol), side, plan.slippageBps, BigInt(plan.legs[leg].market.tick)); }
-  snapshot() { return { scenario: this.scenario, positions: this.positionsRaw.map(String), sends: this.sends, outcomes: [...this.outcomes] }; }
-  static restore(value: ReturnType<SimulatedVenue["snapshot"]>, persist?: (venue: SimulatedVenue) => void) {
+  snapshot() { return { scenario: this.scenario, positions: this.positionsRaw.map(String), sends: this.sends, outcomes: [...this.outcomes], emptyCloseUsed: this.emptyCloseUsed }; }
+  static restore(value: Omit<ReturnType<SimulatedVenue["snapshot"]>, "emptyCloseUsed"> & { emptyCloseUsed?: boolean }, persist?: (venue: SimulatedVenue) => void) {
     const venue = new SimulatedVenue(value.scenario, persist);
     venue.positionsRaw = value.positions.map(BigInt) as [bigint, bigint];
     venue.sends = value.sends;
     venue.outcomes = new Map(value.outcomes);
+    // Older saved simulations predate this flag; a recovery-empty close there has already failed at least once.
+    venue.emptyCloseUsed = value.emptyCloseUsed ?? value.outcomes.length > 0;
     return venue;
   }
+}
+
+/**
+ * Simulator marks for a journal's own legs: fixed labeled prices, so price PnL is zero by
+ * construction. Funding is not simulated and stays unavailable.
+ */
+export function simMarks(record: PairRecord, positions: readonly bigint[]): MarksRead {
+  const legs = record.plan.legs.map((leg, i): LegRead => {
+    const mark = simPrice(leg.market.symbol), size = positions[i] ?? 0n;
+    const opens = record.operations.filter(o => o.leg === i && o.kind === "open" && o.status === "confirmed" && BigInt(o.filled ?? "0") > 0n);
+    const filled = opens.reduce((t, o) => t + BigInt(o.filled!), 0n), value = opens.reduce((t, o) => t + BigInt(o.fillValue ?? String(BigInt(o.filled!) * mark)), 0n);
+    const entry = filled > 0n ? value / filled : mark;
+    return { symbol: leg.market.symbol, priceable: true, size, avgEntryPrice: size !== 0n ? entry : undefined, markPrice: mark, unrealizedPnl: markToMarket(size, entry, mark, leg.market.baseDecimals), asOfBlock: null };
+  });
+  return { readAt: Date.now(), legs: legs as [LegRead, LegRead], source: "simulation" };
 }

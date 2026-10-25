@@ -27,6 +27,7 @@ export class PairEngine {
     if (filled < 0n || filled > BigInt(order.quantity) || (outcome.reverted && filled !== 0n)) throw new Error("Receipt has an invalid fill amount; manual reconciliation required.");
     order.hash = outcome.hash;
     order.filled = String(filled);
+    if (outcome.fillValue !== undefined) order.fillValue = outcome.fillValue;
     order.status = outcome.reverted ? "rejected" : "confirmed";
     record.positions[order.leg] = String(BigInt(record.positions[order.leg]) + signed(order.side, filled));
     await this.save(record, `${order.kind} ${record.plan.legs[order.leg].market.symbol}: ${filled} raw units filled${outcome.reverted ? " (transaction reverted)" : ""}.`);

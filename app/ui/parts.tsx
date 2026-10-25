@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatUnits } from "viem";
 import type { LiveSnapshot } from "../../src/adapters/dreamdex";
 import { simMarkets, simPrices } from "../../src/adapters/simulated";
@@ -123,7 +124,7 @@ function LegCard({ view, mode }: { view: LegView; mode: Mode }) {
   </div>;
 }
 
-export function Post({ record, busy, actionsDisabled, signerMismatch, closeReview, now, onReconcile, onClose, onConfirmClose, onCancelClose, onNew, onExport }: { record: PairRecord; busy: boolean; actionsDisabled: boolean; signerMismatch: string; closeReview: CloseReview | null; now: number; onReconcile: () => void; onClose: () => void; onConfirmClose: () => void; onCancelClose: () => void; onNew: () => void; onExport: () => void }) {
+export function Post({ record, busy, actionsDisabled, signerMismatch, closeReview, now, monitor, drift, onReconcile, onClose, onConfirmClose, onCancelClose, onNew, onExport }: { record: PairRecord; busy: boolean; actionsDisabled: boolean; signerMismatch: string; closeReview: CloseReview | null; now: number; monitor: ReactNode; drift: string[]; onReconcile: () => void; onClose: () => void; onConfirmClose: () => void; onCancelClose: () => void; onNew: () => void; onExport: () => void }) {
   const signer = record.plan.signer ?? record.plan.account, linked = signer.toLowerCase() !== record.plan.account.toLowerCase();
   actionsDisabled ||= Boolean(signerMismatch);
   const mode = record.plan.mode, status = pairStatus(record, busy), alert = pairAlert(record, busy);
@@ -132,6 +133,7 @@ export function Post({ record, busy, actionsDisabled, signerMismatch, closeRevie
   // Every remaining leg is under its market minimum: no close order exists to send.
   const onlyDust = record.status === "incomplete" && closableLegs(record).length === 0;
   const last = record.events.at(-1);
+  const next = nextStep(record, busy, drift);
   return <div className="panel-body" style={{ gap: 18 }}>
     <div className="head-row">
       <span className="muted" style={{ fontSize: 13 }}>Pair <span className="mono" style={{ color: "var(--text-2)" }} title={record.plan.id}>{record.plan.id.slice(0, 4)}…{record.plan.id.slice(-4)}</span></span>
@@ -143,7 +145,8 @@ export function Post({ record, busy, actionsDisabled, signerMismatch, closeRevie
     {signerMismatch && <Callout alert={{ tone: "bad", title: "This pair belongs to another signer.", body: signerMismatch }} live />}
     {alert && <Callout alert={alert} live />}
     <div className="cards">{([0, 1] as const).map(i => <LegCard key={i} view={legView(record, i, busy)} mode={mode} />)}</div>
-    {!closeReview && !signerMismatch && nextStep(record, busy) && <div className="next-step" aria-label="Next step"><span className="k">Next step</span><p className="pretty">{nextStep(record, busy)}{mode === "testnet" && record.operations.some(o => (o.status === "submitting" || o.status === "unknown") && !o.hash) && <> <a href={`${NETWORK.explorer}/address/${record.plan.signer ?? record.plan.account}`} target="_blank" rel="noreferrer">Open signer history ↗</a></>}</p></div>}
+    {!closeReview && !signerMismatch && next && <div className="next-step" aria-label="Next step"><span className="k">Next step</span><p className="pretty">{next}{mode === "testnet" && record.operations.some(o => (o.status === "submitting" || o.status === "unknown") && !o.hash) && <> <a href={`${NETWORK.explorer}/address/${record.plan.signer ?? record.plan.account}`} target="_blank" rel="noreferrer">Open signer history ↗</a></>}</p></div>}
+    {!closeReview && monitor}
     {closeReview ? <CloseReviewPanel review={closeReview} record={record} now={now} busy={actionsDisabled} onCancel={onCancelClose} onConfirm={onConfirmClose} onRefresh={onClose} /> : <>
     <div className="actions">
       {record.status === "flat"
@@ -234,7 +237,7 @@ export function Journal({ record, open, onToggle }: { record: PairRecord | null;
   </section>;
 }
 
-export function Activity({ mode, account, records, activeId, filter, selectedId, onFilter, onSelect, onResolve, onExport, onSimulate }: { mode: Mode; account: string; records: PairRecord[]; activeId: string | null; filter: "all" | "active" | "closed"; selectedId: string | null; onFilter: (f: "all" | "active" | "closed") => void; onSelect: (id: string) => void; onResolve: () => void; onExport: (r: PairRecord) => void; onSimulate: () => void }) {
+export function Activity({ mode, account, records, activeId, filter, selectedId, summary, onFilter, onSelect, onResolve, onExport, onSimulate }: { mode: Mode; account: string; records: PairRecord[]; activeId: string | null; filter: "all" | "active" | "closed"; selectedId: string | null; summary: (r: PairRecord) => ReactNode; onFilter: (f: "all" | "active" | "closed") => void; onSelect: (id: string) => void; onResolve: () => void; onExport: (r: PairRecord) => void; onSimulate: () => void }) {
   const shown = records.filter(r => filter === "all" || (filter === "closed" ? r.status === "flat" : r.status !== "flat"));
   const sel = shown.find(r => r.plan.id === selectedId) ?? shown[0];
   const scope = mode === "simulation" ? "Simulation · this browser" : `Testnet · ${account ? shortHash(account) : "no wallet connected"} · this browser`;
@@ -253,24 +256,18 @@ export function Activity({ mode, account, records, activeId, filter, selectedId,
             <span className={`chip t-${s.tone}`}>{s.label}</span></button>; })}
           {shown.length === 0 && <div className="none">No pairs match this filter.</div>}
         </div>
-        {sel && <ActivityDetail record={sel} active={sel.plan.id === activeId} onResolve={onResolve} onExport={() => onExport(sel)} />}
+        {sel && <ActivityDetail record={sel} active={sel.plan.id === activeId} summary={summary(sel)} onResolve={onResolve} onExport={() => onExport(sel)} />}
       </div>}
   </>;
 }
-function ActivityDetail({ record, active, onResolve, onExport }: { record: PairRecord; active: boolean; onResolve: () => void; onExport: () => void }) {
-  const s = pairStatus(record, false), testnet = record.plan.mode === "testnet";
+function ActivityDetail({ record, active, summary, onResolve, onExport }: { record: PairRecord; active: boolean; summary: ReactNode; onResolve: () => void; onExport: () => void }) {
+  const s = pairStatus(record, false);
   return <div className="detail">
     <div className="head-row"><span className="muted" style={{ fontSize: 13 }}>Pair <span className="mono" style={{ color: "var(--text-2)" }}>{record.plan.id.slice(0, 8)}</span> · {new Date(record.plan.createdAt).toLocaleString()}</span><span className={`chip end t-${s.tone}`}>{s.label}</span></div>
-    <div className="table" role="table" aria-label="Leg quantities">
-      <div className="th" role="row"><span role="columnheader">Leg</span><span className="r" role="columnheader">Requested</span><span className="r" role="columnheader">Filled</span><span className="r" role="columnheader">Open · recorded</span></div>
-      {record.plan.legs.map((leg, i) => { const rows = legView(record, i as 0 | 1, false).rows; return <div role="row" key={leg.market.symbol}>
-        <span className="leg" role="cell"><SideTag side={leg.side === "long" ? "LONG" : "SHORT"} />{leg.market.symbol}-PERP</span>
-        <span className="r" role="cell">{base(leg.quantity, leg)}</span><span className="r" role="cell">{rows[1].v.split(" ")[0]}</span><span className="r" role="cell">{rows.find(r => r.k === "Open now" || r.k === "Last recorded")!.v.split(" ")[0]}</span></div>; })}
-    </div>
+    {summary}
     <div className="timeline"><span className="tl-title">Timeline</span>
       {record.events.map((e, i) => <div className="ev" key={i}><div className="rail"><span className="d" /><span className="l" /></div><div><span>{humanEvent(e.message, record.plan)}</span><time>{time(e.at)}</time></div></div>)}
     </div>
-    {testnet && record.operations.some(o => o.hash) && <div className="notes">{record.operations.filter(o => o.hash).map(o => <a key={o.id} href={`${NETWORK.explorer}/tx/${o.hash}`} target="_blank" rel="noreferrer">{o.kind} {record.plan.legs[o.leg].market.symbol}: {shortHash(o.hash!)} ↗</a>)}</div>}
     {!active && record.status !== "flat" && <span className="leg-note">This record is no longer the active pair for this account{record.plan.mode === "simulation" ? " (the simulator was reset)" : ""}. It is kept as history.</span>}
     <div className="actions">
       {active && record.status !== "flat" && <button type="button" className="btn primary" onClick={onResolve}>Resolve in Trade</button>}

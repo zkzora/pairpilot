@@ -17,6 +17,17 @@ export const signedBase = (raw: string | bigint, leg: LegPlan) => {
 export function quote(raw: string | bigint | null, decimals = 18) {
   return raw === null ? "Unavailable" : Number(formatUnits(BigInt(raw), decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
+/** Exact display rounding (half away from zero) of a raw bigint to `places` decimals. No floats. */
+export function fixed(raw: bigint, decimals: number, places: number) {
+  const negative = raw < 0n, abs = negative ? -raw : raw;
+  const step = decimals > places ? 10n ** BigInt(decimals - places) : 1n;
+  const rounded = (abs + step / 2n) / step * step;
+  const [whole, frac = ""] = formatUnits(rounded, decimals).split(".");
+  return `${negative && rounded !== 0n ? "−" : ""}${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${places ? `.${frac.padEnd(places, "0").slice(0, places)}` : ""}`;
+}
+/** Quote money: 4 decimals under 1 USDso so small PnL and funding stay visible, else 2. */
+export const money = (raw: bigint, decimals: number) => fixed(raw, decimals, absolute(raw) < 10n ** BigInt(decimals) ? 4 : 2);
+export const signedMoney = (raw: bigint, decimals: number) => `${raw > 0n ? "+" : ""}${money(raw, decimals)}`;
 /** An open leg no order can close: after lot rounding it is under the market minimum. */
 export function belowMinimum(record: PairRecord, index: 0 | 1) {
   const position = absolute(BigInt(record.positions[index])), market = record.plan.legs[index].market;
@@ -92,7 +103,9 @@ export function legView(record: PairRecord, index: 0 | 1, busy: boolean): LegVie
     else [view.status, view.tone] = complete ? ["Closed", "mute"] : ["Residual", "warn"];
     view.steps = steps(["done", "done", "done", complete ? "done" : "warn"], [undefined, undefined, undefined, complete ? undefined : amount === 0n ? "No fill" : "Partial"]);
     if (!complete && last.kind === "open") view.note = `Unfilled ${base(BigInt(last.quantity) - amount, leg)} ${symbol} was cancelled by IOC. PairPilot does not resend it.`;
-    if (!complete && last.kind === "close") view.note = `Close filled ${base(amount, leg)} of ${base(last.quantity, leg)} ${symbol} within its limit. The rest stays open.`;
+    if (!complete && last.kind === "close") view.note = amount === 0n
+      ? `The close got no fill within its limit, so the position is unchanged. Nothing was resent.`
+      : `Close filled ${base(amount, leg)} of ${base(last.quantity, leg)} ${symbol} within its limit. The rest stays open.`;
   }
   view.hash = last?.hash;
   if (belowMinimum(record, index) && settled(record, busy)) {
@@ -156,22 +169,31 @@ export function humanEvent(message: string, plan: PairPlan): string {
     .replace(/0x[0-9a-fA-F]{64}/g, hash => shortHash(hash));
 }
 
-/** The one thing to do next in each state, in plain words. Never suggests resending. */
-export function nextStep(record: PairRecord, busy: boolean): string | null {
+/**
+ * The one thing to do next in each state, in plain words. Never suggests resending.
+ * `drift` lists symbols whose latest monitor read differs from this pair's record.
+ */
+export function nextStep(record: PairRecord, busy: boolean, drift: string[] = []): string | null {
   if (busy) return null;
   const legs = record.plan.legs, pending = record.operations.find(unresolved);
   if (pending && !pending.hash) return "Check the signer's transaction history on the explorer first. PairPilot cannot tell whether that order was sent, so do not send any new order until you know.";
   if (pending || record.status === "opening" || record.status === "closing") return "Press Reconcile to read the receipt and positions. If the receipt is still pending, wait a few seconds and reconcile again. Never sign the same order twice.";
+  if (drift.length && (record.status === "paired" || record.status === "incomplete")) return `The latest read shows a different ${drift.join(" and ")} position than this pair recorded, so something outside this pair traded ${drift.length > 1 ? "those markets" : "that market"}. Press Reconcile to re-read. PairPilot closes only what this pair recorded, after a review.`;
   if (record.status === "attention") return "Positions on this account changed outside this pair, or a read failed. Check the account in the dreamDEX app, then press Reconcile. Closing stays blocked until the record matches the chain.";
   if (record.status === "incomplete") {
     const closable = closableLegs(record);
     if (!closable.length) return "Nothing PairPilot can send: what remains is below the market minimum. Leave it, or handle it in the dreamDEX app. It stays listed here as open exposure.";
     const open = closable.map(i => `${legs[i].market.symbol} ${signedBase(record.positions[i], legs[i])}`).join(" and ");
+    const dust = ([0, 1] as const).filter(i => belowMinimum(record, i)).map(i => `${legs[i].market.symbol} ${signedBase(record.positions[i], legs[i])}`);
+    const dustNote = dust.length ? ` ${dust.join(" and ")} is below the market minimum and stays open; no order can close it.` : "";
+    const lastCloses = closable.map(i => record.operations.filter(o => o.leg === i && o.kind === "close").at(-1));
+    const noFill = lastCloses.every(o => o && o.status === "confirmed" && BigInt(o.filled ?? "0") === 0n);
+    if (noFill) return `The close got no fill: nothing traded inside its price bound, so ${open} is still open. Review the close again when the book has liquidity; the review re-reads the position and price bound. Nothing is sent again automatically.${record.plan.mode === "simulation" ? " (In this simulated scenario only the first close finds an empty book.)" : ""}${dustNote}`;
     return record.operations.some(o => o.kind === "close")
-      ? `Review the close again for ${open}. Prices have moved; the review shows the current bound. A close can fill partly when the book is thin.`
-      : `Decide what to do with ${open}: close it with Close remaining exposure (you review quantity and price bound before signing), or keep it on purpose. PairPilot does not send the missing leg for you.`;
+      ? `The close filled partly. Review the close again for ${open}: the review re-reads the position and shows the current price bound. A close can fill partly again when the book is thin.${dustNote}`
+      : `Decide what to do with ${open}: close it with Close remaining exposure (you review quantity and price bound before signing), or keep it on purpose. PairPilot does not send the missing leg for you.${dustNote}`;
   }
-  if (record.status === "paired") return "Both legs are open as planned. Reconcile any time to re-read positions; use Close pair when your view changes.";
-  if (record.status === "flat") return "Done. Export JSON to keep the receipts, then start a new pair if you want.";
+  if (record.status === "paired") return `Both legs are open: ${legs.map((l, i) => `${l.market.symbol} ${signedBase(record.positions[i], l)}`).join(" and ")}. The monitor re-reads marks; Reconcile re-reads positions; Close pair opens a review before anything is signed. Nothing closes automatically.`;
+  if (record.status === "flat") { const at = record.events.at(-1)?.at; return `Done. Both legs read back as zero${at ? ` at ${new Date(at).toLocaleTimeString()}` : ""}. Check the summary, export JSON to keep the receipts, then start a new pair if you want.`; }
   return null;
 }
