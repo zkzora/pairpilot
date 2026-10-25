@@ -9,3 +9,5 @@ test-results/
 .pairpilot/
 *.tsbuildinfo
 research/vendor/
+
+.vercel
