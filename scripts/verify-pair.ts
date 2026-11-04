@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { createPublicClient, decodeFunctionData, formatEther, formatUnits, http, type Hash } from "viem";
-import { decodePlaceOrder } from "@somnia-chain/markets-sdk";
+import { createPublicClient, decodeEventLog, decodeFunctionData, formatEther, formatUnits, http, type Hash } from "viem";
+import { decodePlaceOrder, marginBankEventsAbi } from "@somnia-chain/markets-sdk";
 import { operatorAbi } from "../src/adapters/operator.js";
 import type { PairRecord } from "../src/core/types.js";
 import { createMarkets, hidekiTestnet, NETWORK } from "../src/lib/network.js";
@@ -8,7 +8,10 @@ import { createMarkets, hidekiTestnet, NETWORK } from "../src/lib/network.js";
 /**
  * Read-only proof for one testnet pair journal (CLI file or browser export):
  * every recorded transaction's receipt, sender, order owner, fills and price bound,
- * its explorer page, and the owner's final positions in the journal's OWN markets.
+ * its explorer page, and the owner's position in each of the journal's OWN markets right
+ * after the pair's last order there, from MarginBank PositionUpdated events in those
+ * receipts. That result is permanent; today's positions are read too, for information only,
+ * because the owner may have traded since.
  * Usage: npm run verify -- evidence/testnet-pair-<id>.json [label]
  */
 const [file, label = "pair"] = process.argv.slice(2);
@@ -19,6 +22,8 @@ const rpc = createPublicClient({ chain: hidekiTestnet, transport: http(NETWORK.r
 const owner = record.plan.account, signer = record.plan.signer ?? record.plan.account;
 const problems: string[] = [];
 const transactions = [];
+/** Per leg: the owner's size after this pair's last order in that market, from its own receipt. */
+const afterPair: Record<string, { size: bigint; block: bigint; logIndex: number } | undefined> = {};
 for (const op of record.operations) {
   const leg = record.plan.legs[op.leg];
   const step = `${op.kind} ${leg.market.symbol} ${op.side}`;
@@ -28,6 +33,14 @@ for (const op of record.operations) {
   const fills = decodePlaceOrder(receipt, leg.market.pool as `0x${string}`).fills;
   const filled = fills.reduce((s, f) => s + f.quantityFilled, 0n), quote = fills.reduce((s, f) => s + f.quantityFilled * f.fillPrice, 0n);
   const avg = filled ? quote / filled : null;
+  for (const log of receipt.logs) {
+    let d;
+    try { d = decodeEventLog({ abi: marginBankEventsAbi, data: log.data, topics: log.topics }); } catch { continue; }
+    const a = d.args as { account?: string; perpPool?: string; newSize?: bigint };
+    if (d.eventName !== "PositionUpdated" || a.account?.toLowerCase() !== owner.toLowerCase() || a.perpPool?.toLowerCase() !== leg.market.pool.toLowerCase() || a.newSize === undefined) continue;
+    const prev = afterPair[leg.market.symbol], at = { size: a.newSize, block: receipt.blockNumber, logIndex: log.logIndex ?? 0 };
+    if (!prev || at.block > prev.block || (at.block === prev.block && at.logIndex > prev.logIndex)) afterPair[leg.market.symbol] = at;
+  }
   let orderOwner: string = tx.from;
   try { const call = decodeFunctionData({ abi: operatorAbi, data: tx.input }); if (call.functionName === "placeOrderFor") orderOwner = call.args[0] as string; } catch { /* own-wallet placeOrder */ }
   const inBound = avg === null || (op.side === "long" ? avg <= BigInt(op.limitPrice) : avg >= BigInt(op.limitPrice));
@@ -45,9 +58,21 @@ try {
   const bank = await markets.client.getMarginAccount(record.plan.legs[0].market.marginBank as `0x${string}`, owner as `0x${string}`);
   Object.assign(final, { ownerEquityUSDso: formatUnits(bank.equity, 18), ownerActivePerpPools: bank.activePerpPools.length, signerGasSTT: formatEther(await rpc.getBalance({ address: signer as `0x${string}` })) });
 } finally { await markets.close(); }
-const flat = record.plan.legs.every(l => final[`${l.market.symbol} owner position`] === "0");
-const proof = { mode: "testnet", kind: `read-only verification: ${label}`, verifiedAt: new Date().toISOString(), chainId: NETWORK.id, planId: record.plan.id, journal: file, pair: `${record.plan.legs[0].market.symbol}/${record.plan.legs[1].market.symbol}`, owner, signer, execution: owner.toLowerCase() === signer.toLowerCase() ? "own" : "operator", journalStatus: record.status, events: record.events.map(e => e.message), transactions, finalReadback: final, ownerFlatInJournalMarkets: flat, problems };
+// The pair is verified flat when every market it traded reads zero right after its last order,
+// and the journal records zero for every leg. Untraded legs never changed the owner's position.
+const pairEnd = Object.fromEntries(record.plan.legs.map((l, i) => {
+  const e = afterPair[l.market.symbol];
+  return [l.market.symbol, e ? { sizeAfterPairsLastOrder: formatUnits(e.size, l.market.baseDecimals), atBlock: String(e.block) } : { sizeAfterPairsLastOrder: null, note: record.operations.some(o => o.leg === i && o.hash) ? "no PositionUpdated event for the owner in this pair's receipts" : "this pair sent no transaction in this market" }];
+}));
+const flat = record.positions.every(p => p === "0") && record.plan.legs.every((l, i) => {
+  const e = afterPair[l.market.symbol], traded = record.operations.some(o => o.leg === i && o.hash);
+  return traded ? e?.size === 0n : true;
+});
+if (!flat) problems.push("the owner's position was not zero after the pair's last order in every market it traded");
+const changedSince = record.plan.legs.some(l => final[`${l.market.symbol} owner position`] !== "0");
+const proof = { mode: "testnet", kind: `read-only verification: ${label}`, verifiedAt: new Date().toISOString(), chainId: NETWORK.id, planId: record.plan.id, journal: file, pair: `${record.plan.legs[0].market.symbol}/${record.plan.legs[1].market.symbol}`, owner, signer, execution: owner.toLowerCase() === signer.toLowerCase() ? "own" : "operator", journalStatus: record.status, events: record.events.map(e => e.message), transactions, afterPair: pairEnd, flatAfterPair: flat,
+  currentReadback: { ...final, note: changedSince ? "Informational: the owner has traded these markets since this pair closed. It does not change this pair's result." : "Informational: the owner is still flat in these markets." }, problems };
 const out = `evidence/${label}-proof-${record.plan.id}.json`;
 await writeFile(out, JSON.stringify(proof, null, 2) + "\n");
-console.log(JSON.stringify({ out, pair: proof.pair, journalStatus: record.status, ownerFlatInJournalMarkets: flat, transactions: transactions.map(t => [t.step, "checks" in t && t.checks ? Object.values(t.checks).every(Boolean) : t.note, "avgFillPrice" in t ? t.avgFillPrice : null]), final, problems }, null, 1));
-if (problems.length || !flat) process.exitCode = 2;
+console.log(JSON.stringify({ out, pair: proof.pair, journalStatus: record.status, flatAfterPair: flat, afterPair: pairEnd, transactions: transactions.map(t => [t.step, "checks" in t && t.checks ? Object.values(t.checks).every(Boolean) : t.note, "avgFillPrice" in t ? t.avgFillPrice : null]), currentReadback: proof.currentReadback, problems }, null, 1));
+if (problems.length) process.exitCode = 2;

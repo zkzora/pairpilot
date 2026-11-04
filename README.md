@@ -2,7 +2,39 @@
 
 **PairPilot helps traders understand and resolve long/short pairs whose execution did not finish as planned.** One ticket for a two-leg perp trade on dreamDEX, Somnia Tokyo testnet (chain 50383): long one asset, short another (ETH, BTC, SOL, HYPE). When only one leg fills, PairPilot shows what actually filled and what is still open, says what to do next, and unwinds the rest through a reviewed close. The headline proof is a live recovery: run 5 below.
 
-**Live demo: https://pairpilot-delta.vercel.app** — no setup. Simulation runs in the browser with no wallet (pick "First close finds no liquidity" to see a failed recovery, then a reviewed close to flat). Testnet reads live Somnia Tokyo books and signs only with your own wallet.
+## How to test
+
+Live app: **https://pairpilot-delta.vercel.app**. Pick the path that fits your time. Paths A and B need no wallet, no install and no funds.
+
+### A. Recovery in the browser, no wallet (2 min)
+
+1. Open the live app. It starts in **Simulation**: fixed prices, labeled, nothing is sent anywhere.
+2. In **Pair ticket**, set **Failure scenario** to **Second leg partially fills**. Press **Preview pair**, then **Execute simulation**.
+3. The pair shows **Incomplete**. Check the two leg cards (requested vs filled), **Next step**, and the **Active pair monitor** (actual open sizes, marked value, allocation now vs plan).
+4. Press **Close remaining exposure**. The close review lists the actual quantities and price bounds; nothing runs until you press **Execute simulated close**.
+5. The pair reads **Flat**. The **Closed pair summary** shows planned vs filled, average fill prices and the zero read-back. The **Activity** tab keeps the record; **Export JSON** downloads the journal.
+6. Try **First close finds no liquidity**: the first close gets no fill and the pair stays **Residual exposure**; a second reviewed close ends flat. **Reset simulation** starts over.
+
+### B. Check the live proofs, no wallet (2 min)
+
+- Open any explorer link in [Live testnet proof](#live-testnet-proof-somnia-tokyo-chain-50383-2026-10-22). Each pair has its open and close transactions on Somnia Tokyo.
+- In the live app, switch to **Testnet**: the strip shows live order books and funding read from chain, with no wallet connected.
+- With Node.js 24+ (`npm ci` first), re-check any pair from chain data. Neither command needs a key or sends anything; `verify` saves its report to `evidence/pair-proof-<id>.json`:
+  - `npm run verify -- evidence/testnet-pair-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json` checks receipts, signer, owner, fills and price bounds, and that the owner's position was zero right after the pair's last order (exit code 0 when everything passes);
+  - `npm run summary -- evidence/testnet-pair-8ab9e2fb-8185-4d1c-9bfe-59081193117a.json` prints realized PnL, fees and funding.
+
+### C. Open and close your own pair on testnet (about 15 min)
+
+There is no shared test account: a published key would let anyone trade it. You use your own wallet; the funds are free testnet paper money.
+
+1. **A browser wallet** (MetaMask or similar) with a fresh address. This is the **signer**: it signs orders and pays gas.
+2. **Margin.** In the [dreamDEX testnet app](https://app.testnet.dreamdex.io), sign in with a Somnia Account wallet (a Legacy Account cannot link bots) and join **Perps Arena** at [/competition](https://app.testnet.dreamdex.io/competition) for **1,000 paper USDso**. On [/perps](https://app.testnet.dreamdex.io/perps), use **Perps ⇆ Spot** if the USDso is not yet in the Perps account. This app wallet is the **owner**: it holds margin and positions.
+3. **Link your signer and fund its gas.** In the dreamDEX app, open the wallet, choose **Link a bot** (or **Manage > Bot access**), paste your browser wallet's address, keep **Perps** ticked, leave **Send it … for gas** on, and press **Add bot**. The signer needs about **1 STT on Somnia Tokyo (chain 50383)**; add more with **Top up** on the **Bots** tab. ([Link a Bot docs](https://app.testnet.dreamdex.io/docs/trading/common/link-a-bot).) Faucet STT from Shannon (chain 50312, [testnet.somnia.network](https://testnet.somnia.network/)) does not pay Tokyo gas unless bridged.
+4. **Connect.** In the live app, switch to **Testnet** and press **Connect wallet**. It adds Somnia Tokyo to the wallet if needed. PairPilot then finds the app wallet that linked your signer; press **Trade this app wallet**. The Execution panel shows owner margin, signer gas and both markets' permissions.
+5. **Open a pair.** Pick a pair (ETH/BTC, SOL/BTC and HYPE/SOL were all traded live), keep **50 USDso**, press **Preview pair**, tick the dedicated-account box and press **Sign & open testnet pair**. Approve the two orders in your wallet. To test recovery, reject the second signature: the first leg stays open and PairPilot shows what to do next.
+6. **Reconcile and close.** **Reconcile** re-reads receipts and positions and sends nothing. **Close pair** (or **Close remaining exposure**) shows the review; press **Sign close orders**. The pair reads **Flat** only after both positions read zero on chain; the summary then lists fills, fees and funding.
+
+More detail on each check: [docs/BROWSER-WALKTHROUGH.md](docs/BROWSER-WALKTHROUGH.md). The in-app **Setup** tab checks gas, margin and permissions for your connected wallet.
 
 **Demo video (49 s):** [evidence/demo/pairpilot-demo.webm](evidence/demo/pairpilot-demo.webm). Part 1 is labeled SIMULATION: a HYPE/SOL pair whose second signature is rejected, then the close review and recovery to flat. Part 2 is TESTNET, read-only: live HYPE/SOL books and setup. Live signed trades are listed below with explorer links.
 
@@ -24,7 +56,7 @@ It runs in two ways, both against the same engine: a **browser dashboard** (keys
 
 ## Live testnet proof (Somnia Tokyo, chain 50383, 2026-10-22)
 
-Every row below was independently re-verified from chain data: receipt success, sender = signer, `placeOrderFor` owner = app wallet, decoded fills = journal fills, fills inside the price bound, explorer page present, and the owner's positions read back as zero.
+Every row below was independently re-verified from chain data: receipt success, sender = signer, `placeOrderFor` owner = app wallet, decoded fills = journal fills, fills inside the price bound, explorer page present, and the owner's position zero right after the pair's last order in each market it traded, decoded from MarginBank `PositionUpdated` events in the pair's own receipts. That check gives the same answer whenever it runs. The app wallet has traded again since, so today's positions are printed for information only.
 
 | # | Path | Pair | What happened | Proof |
 |---|---|---|---|---|
